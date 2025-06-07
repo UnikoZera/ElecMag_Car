@@ -1,0 +1,2 @@
+../Core/Src/sensor.c:16:6:Sensor_Init	8	static
+../Core/Src/sensor.c:28:6:Sensor_Updater	16	static

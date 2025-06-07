@@ -3,6 +3,12 @@
         "*.c": "c",
         "gyro.h": "c",
         "oled_optimize.h": "c",
-        "oled.h": "c"
+        "oled.h": "c",
+        "ranges": "c",
+        "compare": "c",
+        "cstdint": "c",
+        "motor.h": "c",
+        "tracker.h": "c",
+        "stdint.h": "c"
     }
 }

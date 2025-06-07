@@ -1,0 +1,3 @@
+../Core/Src/tracker.c:25:6:Tracker_Init	16	static
+../Core/Src/tracker.c:44:6:PID_Controllers_Update	4	static
+../Core/Src/tracker.c:49:6:Tracker_Compute	4	static

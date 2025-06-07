@@ -5,6 +5,9 @@
  *      Author: UnikoZera
  */
 
+
+//这里认为OLED在I2C1总线上，使用的是0x3C地址
+
 #ifndef INC_OLED_H_
 #define INC_OLED_H_
 
