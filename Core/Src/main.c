@@ -27,6 +27,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "motor.h"
+#include "uart_vofa.h"
 #include "sensor.h"
 #include "oled.h"
 #include "oled_optimize.h"
@@ -102,9 +104,11 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C2_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   #pragma region Initialization
   Sensor_Init();
+  Motor_Init();
   OLED_Init();
   Tracker_Init();
 
@@ -119,25 +123,26 @@ int main(void)
     #pragma region Sensor
     // 传感器数据更新
     Sensor_Updater();
+    // Get_Motor_Info();
+    #pragma endregion
+    
+    #pragma region Track
+    // Tracker_Compute();
+    #pragma endregion
+    
+    #pragma region Debug
+    
+    #pragma endregion
+    
+    #pragma region OLED
+    // OLED_ClearBuffer();
+    
+    // OLED_SmartUpdate();
+    // OLED_UpdateDisplayVSync();
     #pragma endregion
 
     #pragma region Debug
     // vofa
-    #pragma endregion
-
-    #pragma region Track
-    // Tracker_Compute();
-    #pragma endregion
-
-    #pragma region Debug
-
-    #pragma endregion
-
-    #pragma region OLED
-    OLED_ClearBuffer();
-
-    // OLED_SmartUpdate();
-    OLED_UpdateDisplayVSync();
     #pragma endregion
     /* USER CODE END WHILE */
 

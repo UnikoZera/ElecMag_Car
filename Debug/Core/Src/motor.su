@@ -1,3 +1,4 @@
-../Core/Src/motor.c:10:6:Motor_Init	8	static
-../Core/Src/motor.c:27:6:Motor_SetSpeed	16	static
-../Core/Src/motor.c:52:6:Motor_Stop	8	static
+../Core/Src/motor.c:16:6:Motor_Init	8	static
+../Core/Src/motor.c:45:6:Motor_SetSpeed	16	static
+../Core/Src/motor.c:101:6:Get_Motor_Info	32	static
+../Core/Src/motor.c:147:6:Motor_Stop	8	static

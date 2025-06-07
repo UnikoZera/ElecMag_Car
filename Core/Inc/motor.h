@@ -19,6 +19,17 @@
 
 void Motor_Init(void);
 void Motor_SetSpeed(int left_speed, int right_speed);
+void Get_Motor_Info(void);
 void Motor_Stop(void);
+
+typedef struct
+{
+    float speed;
+    float angle;        // 角度
+    float acceleration; // 加速度
+} Motor_DataTypeDef;
+
+extern Motor_DataTypeDef motor_left_data; // 电机数据结构体
+extern Motor_DataTypeDef motor_right_data; // 电机数据结构体
 
 #endif /* INC_MOTOR_H_ */

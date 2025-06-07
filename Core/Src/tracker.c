@@ -43,16 +43,15 @@ void Tracker_Init(void)
 }
 
 
-void PID_Motor_Controllers_Updater(float target_left_speed, float current_left_speed,
-                                   float target_right_speed, float current_right_speed)
+void PID_Motor_Controllers_Updater(float target_left_speed, float target_right_speed)
 {
     // 更新左电机速度PID
     PID_SetTarget(&motor_left_pid, target_left_speed);
-    float left_output = PID_Compute(&motor_left_pid, current_left_speed);
+    float left_output = PID_Compute(&motor_left_pid, motor_left_data.speed);
     
     // 更新右电机速度PID
     PID_SetTarget(&motor_right_pid, target_right_speed);
-    float right_output = PID_Compute(&motor_right_pid, current_right_speed);
+    float right_output = PID_Compute(&motor_right_pid, motor_right_data.speed);
 
     // 设置电机速度
     Motor_SetSpeed(left_output, right_output);
