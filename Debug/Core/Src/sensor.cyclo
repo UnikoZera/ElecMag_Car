@@ -1,2 +1,6 @@
-../Core/Src/sensor.c:16:6:Sensor_Init	1
-../Core/Src/sensor.c:28:6:Sensor_Updater	2
+../Core/Src/sensor.c:34:6:Lowpass_Filter	2
+../Core/Src/sensor.c:45:6:Kalman_Init	1
+../Core/Src/sensor.c:55:7:Kalman_Update	2
+../Core/Src/sensor.c:81:6:Kalman_Reset	1
+../Core/Src/sensor.c:91:6:Sensor_Init	2
+../Core/Src/sensor.c:114:6:Sensor_Updater	2

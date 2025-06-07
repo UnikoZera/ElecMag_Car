@@ -9,6 +9,7 @@
         "cstdint": "c",
         "motor.h": "c",
         "tracker.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "sensor.h": "c"
     }
 }

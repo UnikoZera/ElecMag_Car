@@ -9,12 +9,11 @@
 
 void Motor_Init(void)
 {
-    // // 初始化电机相关GPIO和定时器
-    // // 这里假设使用TIM1和TIM2控制左、右电机的PWM输出
+    // 初始化电机相关GPIO和定时器
+    // 这里假设使用TIM1和TIM2控制左、右电机的PWM输出
     // HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // 左电机
     // HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // 右电机
 
-    // // 设置初始速度为0
     Motor_SetSpeed(0, 0);
 }
 
@@ -50,7 +49,7 @@ void Motor_SetSpeed(int left_speed, int right_speed)
 
 }
 
-void Motor_Reset(void)
+void Motor_Stop(void)
 {
     Motor_SetSpeed(0, 0);
 }

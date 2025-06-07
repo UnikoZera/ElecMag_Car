@@ -19,6 +19,6 @@
 
 void Motor_Init(void);
 void Motor_SetSpeed(int left_speed, int right_speed);
-void Motor_Reset(void);
+void Motor_Stop(void);
 
 #endif /* INC_MOTOR_H_ */
