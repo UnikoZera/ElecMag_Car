@@ -108,6 +108,9 @@ void Sensor_Init(void)
         adc_raw[i] = (float)raw_adc_data[i] * Vref / 4095.0f;
     }
     Lowpass_Filter(adc_data, adc_raw, LOWPASS_FILTER_ALPHA);
+
+    // 超声波传感器初始化
+    
 }
 
 

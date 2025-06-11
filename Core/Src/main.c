@@ -107,7 +107,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   #pragma region Initialization
-  Sensor_Init();
+  // Sensor_Init();
   Motor_Init();
   OLED_Init();
   Tracker_Init();
@@ -122,8 +122,8 @@ int main(void)
   {
     #pragma region Sensor
     // 传感器数据更新
-    Sensor_Updater();
-    // Get_Motor_Info();
+    // Sensor_Updater();
+    Get_Motor_Info();
     #pragma endregion
     
     #pragma region Track
@@ -135,10 +135,13 @@ int main(void)
     #pragma endregion
     
     #pragma region OLED
-    // OLED_ClearBuffer();
-    
+    OLED_ClearBuffer();
+    OLED_DisplayFloat(0, 0, motor_left_data.angle);
+    OLED_DisplayFloat(0, 10, motor_left_data.speed);
+    OLED_DisplayFloat(0, 20, motor_left_data.acceleration);
+
     // OLED_SmartUpdate();
-    // OLED_UpdateDisplayVSync();
+    OLED_UpdateDisplayVSync();
     #pragma endregion
 
     #pragma region Debug

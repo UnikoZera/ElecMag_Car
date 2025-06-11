@@ -3,4 +3,4 @@
 ../Core/Src/sensor.c:55:7:Kalman_Update	2
 ../Core/Src/sensor.c:81:6:Kalman_Reset	1
 ../Core/Src/sensor.c:91:6:Sensor_Init	2
-../Core/Src/sensor.c:114:6:Sensor_Updater	2
+../Core/Src/sensor.c:117:6:Sensor_Updater	2
