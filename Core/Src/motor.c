@@ -8,7 +8,7 @@
 #include "motor.h"
 
 #define PWM_PERIOD 1000 // PWM周期
-#define Calculate_PWM_Value(value) ((uint32_t)((value) * PWM_PERIOD / 1000)) // 把0~100转化为pwm的真实占空比
+#define Calculate_PWM_Value(value) ((uint32_t)(value * PWM_PERIOD / 1000)) // 把0~100转化为pwm的真实占空比
 
 #define MOTOR_REVOLUTION 500.0f
 #define MOTOR_REDUCTION_RATIO 1/20.409f // 电机减速比
@@ -169,12 +169,29 @@ void Get_Motor_Info(void)
 
         // 更新历史数据
         pre_left_speed = motor_left_data.speed;
-        pre_right_speed = motor_right_data.speed;
+        pre_right_speed = motor_right_data.speed;    
     }
+
+    Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.33f); // 低通滤波
+    Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.33f); // 低通滤波
 
     preLeftCount = left_encoder_count;
     preRightCount = right_encoder_count;
     pre_time = current_time;
+}
+
+void Lowpass_Filter_Encoder_Left(float *dst, float* input, float alpha)
+{
+    static float prev_output_left = 0.0f; 
+    *dst = alpha * (*input) + (1.0f - alpha) * prev_output_left;
+    prev_output_left = *dst;
+}
+
+void Lowpass_Filter_Encoder_Right(float *dst, float* input, float alpha)
+{
+    static float prev_output_right = 0.0f; 
+    *dst = alpha * (*input) + (1.0f - alpha) * prev_output_right;
+    prev_output_right = *dst;
 }
 
 void Motor_Stop(void)

@@ -19,7 +19,8 @@
 
 extern MPU6050_t gyro_data_raw; // 陀螺仪原始数据结构体
 extern float gyro_data[3]; // 陀螺仪数据，顺序为Gx, Gy, Gz
-extern float adc_data[4];
+extern float adc_data[4]; // ADC数据，顺序为ADC1到ADC4
+extern uint16_t raw_adc_data[5]; // ADC原始数据，最后一个是参考电压
 
 extern float Vref; // 参考电压
 

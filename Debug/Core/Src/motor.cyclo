@@ -1,4 +1,6 @@
 ../Core/Src/motor.c:29:6:Motor_Init	1
 ../Core/Src/motor.c:58:6:Motor_SetSpeed	9
 ../Core/Src/motor.c:122:6:Get_Motor_Info	3
-../Core/Src/motor.c:180:6:Motor_Stop	1
+../Core/Src/motor.c:183:6:Lowpass_Filter_Encoder_Left	1
+../Core/Src/motor.c:190:6:Lowpass_Filter_Encoder_Right	1
+../Core/Src/motor.c:197:6:Motor_Stop	1

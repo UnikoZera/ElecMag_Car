@@ -10,6 +10,7 @@
         "motor.h": "c",
         "tracker.h": "c",
         "stdint.h": "c",
-        "sensor.h": "c"
+        "sensor.h": "c",
+        "cmath": "c"
     }
 }

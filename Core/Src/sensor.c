@@ -6,7 +6,7 @@
  */
 
 #include "sensor.h"
-#define LOWPASS_FILTER_ALPHA 0.5f // 低通滤波系数
+#define LOWPASS_FILTER_ALPHA 0.35f // 低通滤波系数
 
 MPU6050_t gyro_data_raw;
 uint16_t raw_adc_data[5]; // 通道1~4,最后一个是reference电压

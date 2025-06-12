@@ -6,15 +6,16 @@
  */
 
 #include "tracker.h"
+#include "uart_vofa.h"
 
 #define MOTOR_MAX_OUTPUT 1000.0f   // 电机最大输出
 #define MOTOR_MIN_OUTPUT -1000.0f  // 电机最小输出
 #define MOTOR_MAX_INTEGRAL 200.0f  // 电机积分最大值
 #define MOTOR_MIN_INTEGRAL -200.0f // 电机积分最小值
 
-#define MOTOR_KP 1.2f  // 左右电机速度PID比例系数
-#define MOTOR_KI 0.1f  // 左右电机速度PID积分系数
-#define MOTOR_KD 0.05f // 左右电机速度PID微分系数
+#define MOTOR_KP 1.0f  // 左右电机速度PID比例系数
+#define MOTOR_KI 23.3f  // 左右电机速度PID积分系数
+#define MOTOR_KD 0.018f // 左右电机速度PID微分系数
 #define MOTOR_DT 0.01f // PID采样周期，单位为秒
 
 #define ADC_CENTER Vref / 2.0f
@@ -60,13 +61,19 @@ void PID_Motor_Controllers_Updater(float target_left_speed, float target_right_s
 {
     // 更新左电机速度PID
     PID_SetTarget(&motor_left_pid, target_left_speed);
-    float left_output = PID_Compute(&motor_left_pid, motor_left_data.speed);
+    float left_output = PID_Compute(&motor_left_pid, motor_left_data.filtered_speed);
 
     // 更新右电机速度PID
     PID_SetTarget(&motor_right_pid, target_right_speed);
-    float right_output = PID_Compute(&motor_right_pid, motor_right_data.speed);
+    float right_output = PID_Compute(&motor_right_pid, motor_right_data.filtered_speed);
 
     // 设置电机速度
+    float debug_data1[3];
+    debug_data1[0] = left_output;
+    debug_data1[1] = motor_left_data.filtered_speed;
+    debug_data1[2] = motor_left_data.angle; // 角度数据
+    VOFA_SendFloat(debug_data1, 3); // 发送调试数据
+
     Motor_SetSpeed((int)left_output, (int)right_output);
 }
 

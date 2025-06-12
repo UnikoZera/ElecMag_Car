@@ -21,10 +21,13 @@ void Motor_Init(void);
 void Motor_SetSpeed(int left_speed, int right_speed);
 void Get_Motor_Info(void);
 void Motor_Stop(void);
+void Lowpass_Filter_Encoder_Left(float *dst, float* input, float alpha);
+void Lowpass_Filter_Encoder_Right(float *dst, float* input, float alpha);
 
 typedef struct
 {
     float speed;
+    float filtered_speed; // 滤波后的速度
     float angle;        // 角度
     float acceleration; // 加速度
 } Motor_DataTypeDef;
