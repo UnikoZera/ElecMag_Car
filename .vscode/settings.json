@@ -11,6 +11,7 @@
         "tracker.h": "c",
         "stdint.h": "c",
         "sensor.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "uart_vofa.h": "c"
     }
 }

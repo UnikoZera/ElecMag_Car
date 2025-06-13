@@ -50,69 +50,69 @@ void Motor_Init(void)
 
 /*
  * @brief 设置电机速度
- * @param left_speed: 左电机速度
- * @param right_speed: 右电机速度
+ * @param left_pwm: 左电机速度
+ * @param right_pwm: 右电机速度
  * -1000~1000表示速度范围
  * 该函数会先对速度进行限制，然后设置PWM占空比以控制电机速度。
  */
-void Motor_SetSpeed(int left_speed, int right_speed)
+void Motor_SetSpeed(int left_pwm, int right_pwm)
 {
     // 先进行速度限制
-    if (left_speed > MOTOR_MAX_SPEED)
+    if (left_pwm > MOTOR_MAX_PWM)
     {
-        left_speed = MOTOR_MAX_SPEED;
+        left_pwm = MOTOR_MAX_PWM;
     }
-    else if (left_speed < MOTOR_MIN_SPEED)
+    else if (left_pwm < MOTOR_MIN_PWM)
     {
-        left_speed = MOTOR_MIN_SPEED;
-    }
-
-    if (right_speed > MOTOR_MAX_SPEED)
-    {
-        right_speed = MOTOR_MAX_SPEED;
-    }
-    else if (right_speed < MOTOR_MIN_SPEED)
-    {
-        right_speed = MOTOR_MIN_SPEED;
+        left_pwm = MOTOR_MIN_PWM;
     }
 
-    if (left_speed < 0)
+    if (right_pwm > MOTOR_MAX_PWM)
     {
-        left_speed = -left_speed; // 取绝对值
+        right_pwm = MOTOR_MAX_PWM;
+    }
+    else if (right_pwm < MOTOR_MIN_PWM)
+    {
+        right_pwm = MOTOR_MIN_PWM;
+    }
+
+    if (left_pwm < 0)
+    {
+        left_pwm = -left_pwm; // 取绝对值
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN1, GPIO_PIN_RESET); // 左电机正转引脚拉低
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN2, GPIO_PIN_SET);   // 左电机反转引脚拉高
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Calculate_PWM_Value(left_speed));
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Calculate_PWM_Value(left_pwm));
     }
-    else if (left_speed > 0)
+    else if (left_pwm > 0)
     {
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN1, GPIO_PIN_SET);   // 左电机正转引脚拉高
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN2, GPIO_PIN_RESET); // 左电机反转引脚拉低
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Calculate_PWM_Value(left_speed));
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Calculate_PWM_Value(left_pwm));
     }
     else
     {
-        left_speed = 0;
+        left_pwm = 0;
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN1, GPIO_PIN_RESET); // 左电机正转引脚拉低
         HAL_GPIO_WritePin(GPIO_LEFT_PORT, GPIO_LEFT_MOTOR_IN2, GPIO_PIN_RESET); // 左电机反转引脚拉低
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0); // 停止左电机
     }
 
-    if (right_speed < 0)
+    if (right_pwm < 0)
     {
-        right_speed = -right_speed; // 取绝对值
+        right_pwm = -right_pwm; // 取绝对值
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN1, GPIO_PIN_RESET); // 右电机正转引脚拉低
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN2, GPIO_PIN_SET);   // 右电机反转引脚拉高
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, Calculate_PWM_Value(right_speed));
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, Calculate_PWM_Value(right_pwm));
     }
-    else if (right_speed > 0)
+    else if (right_pwm > 0)
     {
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN1, GPIO_PIN_SET);   // 右电机正转引脚拉高
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN2, GPIO_PIN_RESET); // 右电机反转引脚拉低
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, Calculate_PWM_Value(right_speed));
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, Calculate_PWM_Value(right_pwm));
     }
     else
     {
-        right_speed = 0;
+        right_pwm = 0;
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN1, GPIO_PIN_RESET); // 右电机正转引脚拉低
         HAL_GPIO_WritePin(GPIO_RIGHT_PORT, GPIO_RIGHT_MOTOR_IN2, GPIO_PIN_RESET); // 右电机反转引脚拉低
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0); // 停止右电机
@@ -167,13 +167,16 @@ void Get_Motor_Info(void)
         motor_right_data.speed = right_angle_diff / time_diff;                                 // 度/秒
         motor_right_data.acceleration = (motor_right_data.speed - pre_right_speed) / time_diff; // 度/秒²
 
+        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.3f); // 低通滤波
+        Lowpass_Filter_Encoder_Right(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f); // 低通滤波
+        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.3f); // 低通滤波
+        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f); // 低通滤波
+
         // 更新历史数据
         pre_left_speed = motor_left_data.speed;
         pre_right_speed = motor_right_data.speed;    
     }
 
-    Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.33f); // 低通滤波
-    Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.33f); // 低通滤波
 
     preLeftCount = left_encoder_count;
     preRightCount = right_encoder_count;

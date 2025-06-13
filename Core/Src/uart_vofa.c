@@ -109,3 +109,38 @@ void VOFA_SendMixedData(float *float_data, uint8_t float_channels, int32_t *int_
     // 发送混合数据
     VOFA_SendFloat(mixed_data, total_channels);
 }
+
+/**
+ * @brief  发送字符串到VOFA+ (RawData)
+ * @param  str: 字符串指针
+ */
+void VOFA_SendString(const char *str)
+{
+    if (str == NULL)
+        return;
+
+    uint8_t length = strlen(str);
+    if (length == 0 || length > VOFA_MAX_STRING_LENGTH)
+        return;
+
+    uint8_t buffer[VOFA_MAX_STRING_LENGTH]; // 最大字符串长度
+    uint8_t *ptr = buffer;
+
+    // 将字符串复制到缓冲区
+    memcpy(ptr, str, length);
+    ptr += length;
+
+    HAL_UART_Transmit(&huart1, buffer, length, 100);
+}
+
+/**
+ * @brief  发送单个字符到VOFA+ (RawData)
+ * @param  c: 字符
+ */
+void VOFA_SendChar(char c)
+{
+    uint8_t buffer[1];
+    buffer[0] = (uint8_t)c;
+
+    HAL_UART_Transmit(&huart1, buffer, 1, 100);
+}

@@ -15,6 +15,7 @@
 /* VOFA+ 协议定义 */
 #define VOFA_JUSTFLOAT_TAIL 0x00, 0x00, 0x80, 0x7F // JustFloat协议帧尾
 #define VOFA_MAX_CHANNELS 16                       // 最大通道数
+#define VOFA_MAX_STRING_LENGTH 64                  // 最大字符串长度
 
 /* 函数声明 */
 void VOFA_SendFloat(float *data, uint8_t channels);
@@ -22,6 +23,8 @@ void VOFA_SendInt(int32_t *data, uint8_t channels);
 void VOFA_SendSingleFloat(float value);
 void VOFA_SendSingleInt(int32_t value);
 void VOFA_SendMixedData(float *float_data, uint8_t float_channels, int32_t *int_data, uint8_t int_channels);
+void VOFA_SendString(const char *str);
+void VOFA_SendChar(char c);
 
 /* 使用示例:
  *

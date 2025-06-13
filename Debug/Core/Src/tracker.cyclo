@@ -1,8 +1,9 @@
-../Core/Src/tracker.c:42:6:Tracker_Init	1
-../Core/Src/tracker.c:60:6:PID_Motor_Controllers_Updater	1
-../Core/Src/tracker.c:81:6:State_Machine	1
-../Core/Src/tracker.c:85:6:Normal_Track	2
-../Core/Src/tracker.c:109:6:Sharp_Turn_Left_Track	1
-../Core/Src/tracker.c:119:6:Sharp_Turn_Right_Track	1
-../Core/Src/tracker.c:129:6:Lost_Track	5
-../Core/Src/tracker.c:159:6:Tracker_Compute	7
+../Core/Src/tracker.c:48:6:Tracker_Init	1
+../Core/Src/tracker.c:66:6:PID_Motor_Controllers_Updater	1
+../Core/Src/tracker.c:87:6:State_Machine	7
+../Core/Src/tracker.c:133:6:Normal_Track	1
+../Core/Src/tracker.c:149:6:Sharp_Turn_Track	3
+../Core/Src/tracker.c:168:6:Avoid_Obstacle_Track	3
+../Core/Src/tracker.c:192:6:Around_Track	3
+../Core/Src/tracker.c:214:6:Lost_Track	5
+../Core/Src/tracker.c:236:6:Tracker_Compute	7

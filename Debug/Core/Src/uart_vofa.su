@@ -3,3 +3,5 @@
 ../Core/Src/uart_vofa.c:61:6:VOFA_SendSingleFloat	16	static
 ../Core/Src/uart_vofa.c:70:6:VOFA_SendSingleInt	16	static
 ../Core/Src/uart_vofa.c:83:6:VOFA_SendMixedData	104	static
+../Core/Src/uart_vofa.c:117:6:VOFA_SendString	88	static
+../Core/Src/uart_vofa.c:140:6:VOFA_SendChar	24	static

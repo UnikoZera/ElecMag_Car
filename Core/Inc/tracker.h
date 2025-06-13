@@ -11,7 +11,10 @@
 #include "pid.h"
 #include "motor.h"
 #include "sensor.h"
+#include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void Tracker_Init(void);
 void Tracker_Compute(void);

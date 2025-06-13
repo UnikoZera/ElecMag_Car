@@ -130,7 +130,7 @@ int main(void)
     
     #pragma region Track
     // Tracker_Compute();
-    // PID_Motor_Controllers_Updater(1000, 0);
+    // PID_Motor_Controllers_Updater(3400, 0);
 
     #pragma endregion
     
@@ -144,7 +144,7 @@ int main(void)
     OLED_ClearBuffer();
     OLED_DisplayFloat(0, 0, motor_left_data.angle);
     OLED_DisplayFloat(0, 10, motor_left_data.filtered_speed);
-    OLED_DisplayFloat(0, 20, motor_left_data.acceleration);
+    OLED_DisplayFloat(0, 20, motor_left_data.filtered_acceleration);
 
     // OLED_SmartUpdate();
     OLED_UpdateDisplayVSync();
