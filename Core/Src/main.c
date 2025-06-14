@@ -130,7 +130,8 @@ int main(void)
     
     #pragma region Track
     // Tracker_Compute();
-    // PID_Motor_Controllers_Updater(3400, 0);
+    // PID_Motor_Controllers_Position_Updater(305.0f, 0);
+    PID_Motor_Controllers_Speed_Updater(1000.0f, 0.0f);
 
     #pragma endregion
     

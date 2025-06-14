@@ -157,6 +157,7 @@ void Get_Motor_Info(void)
     {
         // 计算左电机数据
         motor_left_data.angle = (float)fabs(fmodf((float)total_left_count, MOTOR_PULSE_PER_REVOLUTION) * 360.0f / MOTOR_PULSE_PER_REVOLUTION);
+        // motor_left_data.angle = (float)total_left_count * 360.0f / MOTOR_PULSE_PER_REVOLUTION;
         float left_angle_diff = (float)left_diff * 360.0f / MOTOR_PULSE_PER_REVOLUTION;
         motor_left_data.speed = left_angle_diff / time_diff;                                 // 度/秒
         motor_left_data.acceleration = (motor_left_data.speed - pre_left_speed) / time_diff; // 度/秒²

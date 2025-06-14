@@ -25,7 +25,8 @@
 #define ADC_RATIO_INSIDE 1.0f
 #define ADC_RATIO_OUTSIDE 4.0f
 
-PID_TypeDef motor_left_pid, motor_right_pid;  // 电机速度PID
+PID_TypeDef motor_left_speed_pid, motor_right_speed_pid;  // 电机速度PID
+PID_TypeDef motor_left_position_pid, motor_right_position_pid; // 电机位置PID
 PID_TypeDef direction_pid; // 方向控制PID
 
 int tender = 1; //-1为向左,1为向右
@@ -48,14 +49,24 @@ TrackState_t previous_track_state = TRACK_IDLE;
 void Tracker_Init(void)
 {
     /* 初始化左电机PID - 速度控制 */
-    PID_Init(&motor_left_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
-    PID_SetOutputLimits(&motor_left_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
-    PID_SetIntegralLimits(&motor_left_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
+    PID_Init(&motor_left_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
+    PID_SetOutputLimits(&motor_left_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
+    PID_SetIntegralLimits(&motor_left_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
 
     /* 初始化右电机PID - 速度控制 */
-    PID_Init(&motor_right_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
-    PID_SetOutputLimits(&motor_right_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
-    PID_SetIntegralLimits(&motor_right_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
+    PID_Init(&motor_right_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
+    PID_SetOutputLimits(&motor_right_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
+    PID_SetIntegralLimits(&motor_right_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
+
+    /* 初始化左电机PID - 位置控制 */
+    PID_Init(&motor_left_position_pid, .9f, 0.0f, 0.005f, 0.01f);
+    PID_SetOutputLimits(&motor_left_position_pid, -500.0f, 500.0f);
+    PID_SetIntegralLimits(&motor_left_position_pid, -100.0f, 100.0f);
+
+    /* 初始化右电机PID - 位置控制 */
+    PID_Init(&motor_right_position_pid, .9f, 0.0f, 0.005f, 0.01f);
+    PID_SetOutputLimits(&motor_right_position_pid, -500.0f, 500.0f);
+    PID_SetIntegralLimits(&motor_right_position_pid, -100.0f, 100.0f);
 
     /* 初始化方向控制PID */
     PID_Init(&direction_pid, 2.0f, 0.05f, 0.1f, 0.01f);
@@ -63,24 +74,38 @@ void Tracker_Init(void)
     PID_SetIntegralLimits(&direction_pid, -100.0f, 100.0f);
 }
 
-void PID_Motor_Controllers_Updater(float target_left_speed, float target_right_speed)
+void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed)
 {
     // 更新左电机速度PID
-    PID_SetTarget(&motor_left_pid, target_left_speed);
-    float left_output = PID_Compute(&motor_left_pid, motor_left_data.filtered_speed);
+    PID_SetTarget(&motor_left_speed_pid, target_left_speed);
+    float left_output = PID_Compute(&motor_left_speed_pid, motor_left_data.filtered_speed);
 
     // 更新右电机速度PID
-    PID_SetTarget(&motor_right_pid, target_right_speed);
-    float right_output = PID_Compute(&motor_right_pid, motor_right_data.filtered_speed);
+    PID_SetTarget(&motor_right_speed_pid, target_right_speed);
+    float right_output = PID_Compute(&motor_right_speed_pid, motor_right_data.filtered_speed);
 
     // 设置电机速度
-    // float debug_data1[3];
-    // debug_data1[0] = left_output;
-    // debug_data1[1] = motor_left_data.filtered_speed;
-    // debug_data1[2] = motor_left_data.filtered_acceleration; // 角度数据
-    // VOFA_SendFloat(debug_data1, 3);         // 发送调试数据
+    float debug_data1[3];
+    debug_data1[0] = left_output;
+    debug_data1[1] = motor_left_data.filtered_speed;
+    debug_data1[2] = motor_left_data.filtered_acceleration; // 角度数据
+    VOFA_SendFloat(debug_data1, 3);         // 发送调试数据
 
     Motor_SetSpeed((int)left_output, (int)right_output);
+}
+
+void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position)
+{
+    // 更新左电机位置PID
+    PID_SetTarget(&motor_left_position_pid, target_left_position);
+    float left_output = PID_Compute(&motor_left_position_pid, motor_left_data.angle);
+
+    // 更新右电机位置PID
+    PID_SetTarget(&motor_right_position_pid, target_right_position);
+    float right_output = PID_Compute(&motor_right_position_pid, motor_right_data.angle);
+
+    // 设置电机速度
+    PID_Motor_Controllers_Speed_Updater(left_output, right_output);
 }
 
 #pragma region 状态机函数
@@ -143,7 +168,7 @@ void Normal_Track(void) // 标准的巡线
     float target_left_speed = motor_basic_speed - direction_correction;
     float target_right_speed = motor_basic_speed + direction_correction;
 
-    PID_Motor_Controllers_Updater(target_left_speed, target_right_speed);
+    PID_Motor_Controllers_Speed_Updater(target_left_speed, target_right_speed);
 }
 
 void Sharp_Turn_Track(int dir) //后退着 //? 因为我认为normalTrack应该可以对付直角转弯
@@ -154,10 +179,10 @@ void Sharp_Turn_Track(int dir) //后退着 //? 因为我认为normalTrack应该�
     switch (dir)
     {
     case 1:
-        PID_Motor_Controllers_Updater(turn_speed, target_speed);
+        PID_Motor_Controllers_Speed_Updater(turn_speed, target_speed);
         break;
     case -1:
-        PID_Motor_Controllers_Updater(target_speed, turn_speed);
+        PID_Motor_Controllers_Speed_Updater(target_speed, turn_speed);
         break;
     default:
         Motor_Stop();
@@ -195,13 +220,13 @@ void Around_Track(int dir)
     {
     case 1:
     {
-        PID_Motor_Controllers_Updater(1500.0f, 1000.0f); // 右转
+        PID_Motor_Controllers_Speed_Updater(1500.0f, 1000.0f); // 右转
         Normal_Track(); // 继续正常跟踪
         break;
     }
     case -1:
     {
-        PID_Motor_Controllers_Updater(1000.0f, 1500.0f); // 左转
+        PID_Motor_Controllers_Speed_Updater(1000.0f, 1500.0f); // 左转
         Normal_Track(); // 继续正常跟踪
         break;
     }
