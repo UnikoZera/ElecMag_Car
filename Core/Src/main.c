@@ -102,7 +102,6 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
-  MX_I2C2_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
@@ -124,14 +123,14 @@ int main(void)
   {
     #pragma region Sensor
     // 传感器数据更新
-    // Sensor_Updater();
+    Sensor_Updater();
     Get_Motor_Info();
     #pragma endregion
     
     #pragma region Track
     // Tracker_Compute();
     // PID_Motor_Controllers_Position_Updater(305.0f, 0);
-    PID_Motor_Controllers_Speed_Updater(1000.0f, 0.0f);
+    // PID_Motor_Controllers_Speed_Updater(000.0f, 0.0f);
 
     #pragma endregion
     
@@ -142,18 +141,15 @@ int main(void)
     #pragma endregion
     
     #pragma region OLED
-    OLED_ClearBuffer();
-    OLED_DisplayFloat(0, 0, motor_left_data.angle);
-    OLED_DisplayFloat(0, 10, motor_left_data.filtered_speed);
-    OLED_DisplayFloat(0, 20, motor_left_data.filtered_acceleration);
+    // OLED_ClearBuffer();
+    // OLED_DisplayFloat(0, 0, motor_left_data.angle);
+    // OLED_DisplayFloat(0, 10, motor_left_data.filtered_speed);
+    // OLED_DisplayFloat(0, 20, motor_left_data.filtered_acceleration);
 
     // OLED_SmartUpdate();
-    OLED_UpdateDisplayVSync();
+    // OLED_UpdateDisplayVSync();
     #pragma endregion
 
-    #pragma region Debug
-    // vofa
-    #pragma endregion
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -225,8 +221,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

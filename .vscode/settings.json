@@ -12,6 +12,8 @@
         "stdint.h": "c",
         "sensor.h": "c",
         "cmath": "c",
-        "uart_vofa.h": "c"
+        "uart_vofa.h": "c",
+        "pid.h": "c",
+        "gpio.h": "c"
     }
 }

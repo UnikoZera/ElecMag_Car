@@ -168,10 +168,10 @@ void Get_Motor_Info(void)
         motor_right_data.speed = right_angle_diff / time_diff;                                 // 度/秒
         motor_right_data.acceleration = (motor_right_data.speed - pre_right_speed) / time_diff; // 度/秒²
 
-        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.3f); // 低通滤波
-        Lowpass_Filter_Encoder_Right(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f); // 低通滤波
-        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.3f); // 低通滤波
-        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f); // 低通滤波
+        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.3f);                     // 低通滤波
+        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f);      // 低通滤波
+        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.3f);                  // 低通滤波
+        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f);   // 低通滤波
 
         // 更新历史数据
         pre_left_speed = motor_left_data.speed;

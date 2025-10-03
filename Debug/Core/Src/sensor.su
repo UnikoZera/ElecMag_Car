@@ -1,6 +1,6 @@
-../Core/Src/sensor.c:34:6:Lowpass_Filter	40	static
-../Core/Src/sensor.c:45:6:Kalman_Init	24	static
-../Core/Src/sensor.c:55:7:Kalman_Update	24	static
-../Core/Src/sensor.c:81:6:Kalman_Reset	16	static
-../Core/Src/sensor.c:91:6:Sensor_Init	16	static
-../Core/Src/sensor.c:117:6:Sensor_Updater	16	static
+../Core/Src/sensor.c:32:6:Lowpass_Filter	40	static
+../Core/Src/sensor.c:43:6:Kalman_Init	24	static
+../Core/Src/sensor.c:53:7:Kalman_Update	24	static
+../Core/Src/sensor.c:79:6:Kalman_Reset	16	static
+../Core/Src/sensor.c:89:6:Sensor_Init	8	static
+../Core/Src/sensor.c:109:6:Sensor_Updater	8	static

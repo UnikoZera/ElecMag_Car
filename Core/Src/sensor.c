@@ -9,12 +9,10 @@
 #define LOWPASS_FILTER_ALPHA 0.35f // 低通滤波系数
 
 MPU6050_t gyro_data_raw;
-uint16_t raw_adc_data[5]; // 通道1~4,最后一个是reference电压
-float adc_raw[4];// 未被滤波的ADC数据
+uint16_t raw_adc_data[5]; // 通道1~4
 
-float adc_data[4]; //直接就是,左边到右边
+uint16_t adc_data[5]; //直接就是,左边到右边
 float gyro_data[3]; // 陀螺仪数据，顺序为Gx, Gy, Gz
-float Vref = 1.2f; // 参考电压
 
 typedef struct
 {
@@ -31,11 +29,11 @@ DPS_KalmanFilter gyro_x_filter, gyro_y_filter, gyro_z_filter;
 
 #pragma region  传感器滤波函数
 // 低通滤波函数for ADC数据
-void Lowpass_Filter(float *dst, float* input, float alpha)
+void Lowpass_Filter(uint16_t *dst, uint16_t *input, float alpha)
 {
-    static float prev_data[4] = {0.0f, 0.0f, 0.0f, 0.0f}; 
+    static uint16_t prev_data[5] = {0, 0, 0, 0, 0}; // 上一次的输入数据
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         dst[i] = alpha * input[i] + (1 - alpha) * prev_data[i];
         prev_data[i] = input[i];
@@ -101,16 +99,10 @@ void Sensor_Init(void)
     HAL_ADCEx_Calibration_Start(&hadc1);
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)raw_adc_data, sizeof(raw_adc_data)/sizeof(uint16_t));
 
-    // 更新一次ADC数据
-    Vref = 1.2 * (4095.0f / (float)raw_adc_data[4]);
-    for (int i = 0; i < 4; i++)
-    {
-        adc_raw[i] = (float)raw_adc_data[i] * Vref / 4095.0f;
-    }
-    Lowpass_Filter(adc_data, adc_raw, LOWPASS_FILTER_ALPHA);
+    Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
 
     // 超声波传感器初始化
-    
+    // Boy, that is insane!
 }
 
 
@@ -121,11 +113,8 @@ void Sensor_Updater(void)
     gyro_data[1] = Kalman_Update(&gyro_y_filter, gyro_data_raw.Gy);
     gyro_data[2] = Kalman_Update(&gyro_z_filter, gyro_data_raw.Gz);
 
-    // 更新ADC数据
-    Vref = 1.2 * (4095.0f / (float)raw_adc_data[4]);
-    for (int i = 0; i < 4; i++)
-    {
-        adc_raw[i] = (float)raw_adc_data[i] * Vref / 4095.0f;
-    }
-    Lowpass_Filter(adc_data, adc_raw, LOWPASS_FILTER_ALPHA);
+    Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
+
+    // 超声波传感器更新
+    // Boy, that is insane,too!
 }
