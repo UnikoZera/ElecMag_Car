@@ -30,8 +30,6 @@
 #include "motor.h"
 #include "uart_vofa.h"
 #include "sensor.h"
-#include "oled.h"
-#include "oled_optimize.h"
 #include "pid.h"
 #include "tracker.h"
 /* USER CODE END Includes */
@@ -99,18 +97,17 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_TIM1_Init();
-  MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_I2C2_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   #pragma region Initialization
-  // Sensor_Init();
+  Sensor_Init();
   Motor_Init();
-  OLED_Init();
   Tracker_Init();
-
 
 
   #pragma endregion
@@ -138,16 +135,6 @@ int main(void)
     // debug_data[0] = motor_left_data.fliltered_speed;
     // VOFA_SendFloat(debug_data, 4);
 
-    #pragma endregion
-    
-    #pragma region OLED
-    // OLED_ClearBuffer();
-    // OLED_DisplayFloat(0, 0, motor_left_data.angle);
-    // OLED_DisplayFloat(0, 10, motor_left_data.filtered_speed);
-    // OLED_DisplayFloat(0, 20, motor_left_data.filtered_acceleration);
-
-    // OLED_SmartUpdate();
-    // OLED_UpdateDisplayVSync();
     #pragma endregion
 
     /* USER CODE END WHILE */

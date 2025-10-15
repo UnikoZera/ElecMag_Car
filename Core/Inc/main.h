@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdint.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -59,14 +59,19 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SYS_WL_Pin GPIO_PIN_13
 #define SYS_WL_GPIO_Port GPIOC
-#define BIN2_Pin GPIO_PIN_12
-#define BIN2_GPIO_Port GPIOB
-#define BIN1_Pin GPIO_PIN_13
+#define HC_Trigger_Pin GPIO_PIN_14
+#define HC_Trigger_GPIO_Port GPIOC
+#define HC_Input_Pin GPIO_PIN_15
+#define HC_Input_GPIO_Port GPIOC
+#define HC_Input_EXTI_IRQn EXTI15_10_IRQn
+#define BIN1_Pin GPIO_PIN_0
 #define BIN1_GPIO_Port GPIOB
-#define AIN2_Pin GPIO_PIN_14
-#define AIN2_GPIO_Port GPIOB
-#define AIN1_Pin GPIO_PIN_15
+#define BIN2_Pin GPIO_PIN_1
+#define BIN2_GPIO_Port GPIOB
+#define AIN1_Pin GPIO_PIN_4
 #define AIN1_GPIO_Port GPIOB
+#define AIN2_Pin GPIO_PIN_5
+#define AIN2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -24,8 +24,6 @@ void Motor_Init(void);
 void Motor_SetSpeed(int left_pwm, int right_pwm);
 void Get_Motor_Info(void);
 void Motor_Stop(void);
-void Lowpass_Filter_Encoder_Left(float *dst, float* input, float alpha);
-void Lowpass_Filter_Encoder_Right(float *dst, float* input, float alpha);
 
 typedef struct
 {

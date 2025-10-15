@@ -26,6 +26,21 @@
 Motor_DataTypeDef motor_left_data;  // 电机数据结构体
 Motor_DataTypeDef motor_right_data; // 电机数据结构体
 
+typedef struct 
+{
+    float prevNum;
+} LPF1State;
+
+LPF1State lpf1_left_speed, lpf1_left_acceleration, lpf1_right_speed, lpf1_right_acceleration = {0.0f};
+
+static float LPF1_Update(float *dst, float *input, float alpha, LPF1State *state)
+{
+    *dst = alpha * (*input) + (1.0f - alpha) * state->prevNum;
+    state->prevNum = *dst;
+    return *dst;
+}
+
+
 void Motor_Init(void)
 {
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // 左电机
@@ -168,10 +183,10 @@ void Get_Motor_Info(void)
         motor_right_data.speed = right_angle_diff / time_diff;                                 // 度/秒
         motor_right_data.acceleration = (motor_right_data.speed - pre_right_speed) / time_diff; // 度/秒²
 
-        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.3f);                     // 低通滤波
-        Lowpass_Filter_Encoder_Left(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f);      // 低通滤波
-        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.3f);                  // 低通滤波
-        Lowpass_Filter_Encoder_Right(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f);   // 低通滤波
+        LPF1_Update(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.3f, &lpf1_left_speed);                           // 低通滤波
+        LPF1_Update(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f, &lpf1_left_acceleration);     // 低通滤波
+        LPF1_Update(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.3f, &lpf1_right_speed);                        // 低通滤波
+        LPF1_Update(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f, &lpf1_right_acceleration);  // 低通滤波
 
         // 更新历史数据
         pre_left_speed = motor_left_data.speed;
@@ -182,20 +197,6 @@ void Get_Motor_Info(void)
     preLeftCount = left_encoder_count;
     preRightCount = right_encoder_count;
     pre_time = current_time;
-}
-
-void Lowpass_Filter_Encoder_Left(float *dst, float* input, float alpha)
-{
-    static float prev_output_left = 0.0f; 
-    *dst = alpha * (*input) + (1.0f - alpha) * prev_output_left;
-    prev_output_left = *dst;
-}
-
-void Lowpass_Filter_Encoder_Right(float *dst, float* input, float alpha)
-{
-    static float prev_output_right = 0.0f; 
-    *dst = alpha * (*input) + (1.0f - alpha) * prev_output_right;
-    prev_output_right = *dst;
 }
 
 void Motor_Stop(void)

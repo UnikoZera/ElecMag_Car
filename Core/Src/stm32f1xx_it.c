@@ -51,6 +51,8 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t rising_time, falling_time = 0;
+uint32_t distance = 0; // cm
 
 /* USER CODE END 0 */
 
@@ -210,6 +212,32 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
   /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+  if (__HAL_GPIO_EXTI_GET_IT(HC_Input_Pin) == SET)
+  {
+      rising_time = __HAL_TIM_GetCounter(&htim4);
+      __HAL_GPIO_EXTI_CLEAR_IT(HC_Input_Pin);
+  }
+  else if (__HAL_GPIO_EXTI_GET_IT(HC_Input_Pin) == RESET)
+  {
+    falling_time = __HAL_TIM_GetCounter(&htim4);
+    uint32_t echo_time = falling_time - rising_time; // uS
+    distance = 170000U * (echo_time/1000000U); // cm
+  }
+
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(HC_Input_Pin);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

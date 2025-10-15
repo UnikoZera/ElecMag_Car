@@ -15,7 +15,7 @@
  */
 uint8_t MPU6050_Write_Reg(uint8_t reg, uint8_t data)
 {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, reg, 1, &data, 1, MPU6050_TIMEOUT_MS);
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(&hi2c2, MPU6050_ADDR, reg, 1, &data, 1, MPU6050_TIMEOUT_MS);
     return (status == HAL_OK) ? 0 : 1;
 }
 
@@ -27,7 +27,7 @@ uint8_t MPU6050_Write_Reg(uint8_t reg, uint8_t data)
  */
 uint8_t MPU6050_Read_Reg(uint8_t reg, uint8_t *data)
 {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, reg, 1, data, 1, MPU6050_TIMEOUT_MS);
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(&hi2c2, MPU6050_ADDR, reg, 1, data, 1, MPU6050_TIMEOUT_MS);
     return (status == HAL_OK) ? 0 : 1;
 }
 
@@ -40,7 +40,7 @@ uint8_t MPU6050_Read_Reg(uint8_t reg, uint8_t *data)
  */
 uint8_t MPU6050_Read_Multi_Reg(uint8_t reg, uint8_t *data, uint8_t length)
 {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, reg, 1, data, length, MPU6050_TIMEOUT_MS);
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(&hi2c2, MPU6050_ADDR, reg, 1, data, length, MPU6050_TIMEOUT_MS);
     return (status == HAL_OK) ? 0 : 1;
 }
 
@@ -56,7 +56,7 @@ uint8_t MPU6050_Init(void)
     HAL_Delay(MPU6050_STARTUP_DELAY_MS);
 
     // 检查设备是否存在
-    status = HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, MPU6050_TIMEOUT_MS);
+    status = HAL_I2C_Mem_Read(&hi2c2, MPU6050_ADDR, WHO_AM_I_REG, 1, &check, 1, MPU6050_TIMEOUT_MS);
 
     if (status != HAL_OK || check != 0x68)
     {
