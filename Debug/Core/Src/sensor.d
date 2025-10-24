@@ -28,7 +28,8 @@ Core/Src/sensor.o: ../Core/Src/sensor.c ../Core/Inc/sensor.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/i2c.h ../Core/Inc/adc.h ../Core/Inc/tim.h ../Core/Inc/gpio.h
+ ../Core/Inc/i2c.h ../Core/Inc/adc.h ../Core/Inc/ultransonic.h \
+ ../Core/Inc/gpio.h ../Core/Inc/tim.h ../Core/Inc/stm32f1xx_it.h
 ../Core/Inc/sensor.h:
 ../Core/Inc/gyro.h:
 ../Core/Inc/main.h:
@@ -62,5 +63,7 @@ Core/Src/sensor.o: ../Core/Src/sensor.c ../Core/Inc/sensor.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 ../Core/Inc/i2c.h:
 ../Core/Inc/adc.h:
-../Core/Inc/tim.h:
+../Core/Inc/ultransonic.h:
 ../Core/Inc/gpio.h:
+../Core/Inc/tim.h:
+../Core/Inc/stm32f1xx_it.h:

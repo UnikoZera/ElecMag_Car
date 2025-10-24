@@ -96,13 +96,12 @@ void Sensor_Init(void)
     Kalman_Init(&gyro_z_filter, 0.001f, 0.01f); // 初始化Z轴卡尔曼滤波器
 
     //初始化ADC
-    HAL_ADCEx_Calibration_Start(&hadc1);
+    HAL_ADCEx_Calibration_Start(&hadc1); // 校准ADC, 但是貌似没啥卵用233.
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)raw_adc_data, sizeof(raw_adc_data)/sizeof(uint16_t));
 
     Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
 
-    // 超声波传感器初始化
-    // Boy, that is insane!
+    Ultrasonic_Init();
 }
 
 
@@ -115,6 +114,30 @@ void Sensor_Updater(void)
 
     Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
 
-    // 超声波传感器更新
-    // Boy, that is insane,too!
+    // 超声波传感器更新距离值在中断中完成，无需在此处处理!
+    // distance 变量在中断处理程序中更新
+    // 为什么你还在看注释
+    // 这里什么都没有了！
+    // 真的！
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 你在找这个嘛？
+    // adc 数据已经在DMA中自动更新
+    // 直接使用 adc_data 数组 {v1, v2, v3, v4, v5}
 }

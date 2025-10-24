@@ -284,7 +284,8 @@ void MPU6050_Read_All(MPU6050_t *DataStruct)
     {
         // 解析加速度计数据
         DataStruct->Accel_X_RAW = (int16_t)(Rec_Data[0] << 8 | Rec_Data[1]);
-        DataStruct->Accel_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);        DataStruct->Accel_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
+        DataStruct->Accel_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);
+        DataStruct->Accel_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
         
         // 解析温度数据
         int16_t temp = (int16_t)(Rec_Data[6] << 8 | Rec_Data[7]);

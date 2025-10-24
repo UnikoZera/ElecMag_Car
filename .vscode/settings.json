@@ -20,6 +20,7 @@
         "dma.h": "c",
         "stm32f1xx_it.h": "c",
         "ultransonic.h": "c",
-        "stm32f1xx.h": "c"
+        "stm32f1xx.h": "c",
+        "stdbool.h": "c"
     }
 }

@@ -14,7 +14,9 @@
 #include "gyro.h"
 #include "main.h"
 #include "adc.h"
+#include "ultransonic.h"
 #include "tim.h"
+#include "i2c.h"
 #include "gpio.h"
 
 extern MPU6050_t gyro_data_raw; // 陀螺仪原始数据结构体

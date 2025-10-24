@@ -22,6 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+bool echo_received = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,12 +53,13 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint32_t rising_time, falling_time = 0;
-uint32_t distance = 0; // cm
+float distance = 0; // cm
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc1;
+extern TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -215,21 +217,37 @@ void DMA1_Channel1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */
+
+  /* USER CODE END TIM4_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim4);
+  /* USER CODE BEGIN TIM4_IRQn 1 */
+
+  /* USER CODE END TIM4_IRQn 1 */
+}
+
+/**
   * @brief This function handles EXTI line[15:10] interrupts.
   */
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-  if (__HAL_GPIO_EXTI_GET_IT(HC_Input_Pin) == SET)
+  if (HAL_GPIO_ReadPin(HC_Input_GPIO_Port, HC_Input_Pin) == GPIO_PIN_SET && !echo_received)
   {
       rising_time = __HAL_TIM_GetCounter(&htim4);
-      __HAL_GPIO_EXTI_CLEAR_IT(HC_Input_Pin);
+      echo_received = true;
   }
-  else if (__HAL_GPIO_EXTI_GET_IT(HC_Input_Pin) == RESET)
+
+  if (HAL_GPIO_ReadPin(HC_Input_GPIO_Port, HC_Input_Pin) == GPIO_PIN_RESET && echo_received)
   {
     falling_time = __HAL_TIM_GetCounter(&htim4);
     uint32_t echo_time = falling_time - rising_time; // uS
-    distance = 170000U * (echo_time/1000000U); // cm
+    distance = 170000U * (float)echo_time/10000000; // cm
+    echo_received = false;
   }
 
 

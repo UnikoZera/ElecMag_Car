@@ -15,8 +15,8 @@
 #include <stdint.h>
 
 
-// 以 TIM4 (72MHz/72=1MHz) 为时间基，产生 PC14 10us 高电平触发脉冲
-void Ultrasonic_Trigger10us(void);
+// 以 TIM4 (72MHz/72=1MHz) 为时间基，产生 PC14 50us 高电平触发脉冲
+void Ultrasonic_Trigger50us(void);
 // 初始化触发脚状态（置低）
 void Ultrasonic_Init(void);
 // distance is a global variable that you can using in other files just include "ultransonic.h"

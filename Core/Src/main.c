@@ -32,6 +32,8 @@
 #include "sensor.h"
 #include "pid.h"
 #include "tracker.h"
+#include "ultransonic.h" // Finally i did this. 25/10/24 -_-.
+#include "stdbool.h" // for some nil boy wanna to using bool type.
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +110,6 @@ int main(void)
   Sensor_Init();
   Motor_Init();
   Tracker_Init();
-
 
   #pragma endregion
 

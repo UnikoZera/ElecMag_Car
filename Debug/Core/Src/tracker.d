@@ -30,7 +30,8 @@ Core/Src/tracker.o: ../Core/Src/tracker.c ../Core/Inc/tracker.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
  ../Core/Inc/gpio.h ../Core/Inc/tim.h ../Core/Inc/sensor.h \
  ../Core/Inc/gyro.h ../Core/Inc/i2c.h ../Core/Inc/adc.h \
- ../Core/Inc/uart_vofa.h ../Core/Inc/usart.h
+ ../Core/Inc/ultransonic.h ../Core/Inc/stm32f1xx_it.h \
+ ../Core/Inc/uart_vofa.h ../Core/Inc/usart.h ../Core/Inc/stm32f1xx_it.h
 ../Core/Inc/tracker.h:
 ../Core/Inc/pid.h:
 ../Core/Inc/motor.h:
@@ -69,5 +70,8 @@ Core/Src/tracker.o: ../Core/Src/tracker.c ../Core/Inc/tracker.h \
 ../Core/Inc/gyro.h:
 ../Core/Inc/i2c.h:
 ../Core/Inc/adc.h:
+../Core/Inc/ultransonic.h:
+../Core/Inc/stm32f1xx_it.h:
 ../Core/Inc/uart_vofa.h:
 ../Core/Inc/usart.h:
+../Core/Inc/stm32f1xx_it.h:

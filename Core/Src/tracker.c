@@ -7,6 +7,7 @@
 
 #include "tracker.h"
 #include "uart_vofa.h"
+#include "stm32f1xx_it.h"
 
 #define MOTOR_MAX_OUTPUT 1000.0f   // 电机最大输出
 #define MOTOR_MIN_OUTPUT -1000.0f  // 电机最小输出
@@ -58,17 +59,17 @@ void Tracker_Init(void)
     PID_SetOutputLimits(&motor_right_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
     PID_SetIntegralLimits(&motor_right_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
 
-    /* 初始化左电机PID - 位置控制 */
+    /* 初始化左电机PID - 位置控制 */ //? 停车可能有用 2333
     PID_Init(&motor_left_position_pid, .9f, 0.0f, 0.005f, 0.01f);
     PID_SetOutputLimits(&motor_left_position_pid, -500.0f, 500.0f);
     PID_SetIntegralLimits(&motor_left_position_pid, -100.0f, 100.0f);
 
-    /* 初始化右电机PID - 位置控制 */
+    /* 初始化右电机PID - 位置控制 */ //? 停车可能有用 2333
     PID_Init(&motor_right_position_pid, .9f, 0.0f, 0.005f, 0.01f);
     PID_SetOutputLimits(&motor_right_position_pid, -500.0f, 500.0f);
     PID_SetIntegralLimits(&motor_right_position_pid, -100.0f, 100.0f);
 
-    /* 初始化方向控制PID */
+    /* 初始化方向控制PID */ // 我能不能活就看你了
     PID_Init(&direction_pid, 2.0f, 0.05f, 0.1f, 0.01f);
     PID_SetOutputLimits(&direction_pid, 3000.0f, 3000.0f);
     PID_SetIntegralLimits(&direction_pid, -100.0f, 100.0f);
@@ -107,6 +108,11 @@ void PID_Motor_Controllers_Position_Updater(float target_left_position, float ta
     // 设置电机速度
     PID_Motor_Controllers_Speed_Updater(left_output, right_output);
 }
+
+
+
+
+
 
 #pragma region 状态机函数
 void State_Machine(void)
