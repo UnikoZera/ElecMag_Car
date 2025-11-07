@@ -11,8 +11,10 @@
 #include <stdint.h>
 #include <math.h>
 #include "main.h"
+#include "pid.h"
 #include "gpio.h"
 #include "tim.h"
+#include "uart_vofa.h" // 用于调试数据发送
 
 #define MOTOR_MAX_PWM 1000  // 电机最大速度
 #define MOTOR_MIN_PWM -1000 // 电机最小速度
@@ -24,6 +26,10 @@ void Motor_Init(void);
 void Motor_SetSpeed(int left_pwm, int right_pwm);
 void Get_Motor_Info(void);
 void Motor_Stop(void);
+
+// that's it!
+void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed);
+void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position);
 
 typedef struct
 {

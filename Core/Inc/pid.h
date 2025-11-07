@@ -9,6 +9,7 @@
 #define INC_PID_H_
 
 #include <stdint.h>
+#include "tim.h" // For time (dt) functions if needed
 
 /* PID控制器结构体定义 */
 typedef struct {
@@ -33,6 +34,7 @@ typedef struct {
     
     /* 采样时间 */
     float dt;           // 采样周期(秒)
+    uint32_t last_time; // 上次计算时间戳(us)
     
 } PID_TypeDef;
 

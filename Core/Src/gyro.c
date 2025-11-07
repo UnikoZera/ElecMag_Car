@@ -90,13 +90,13 @@ uint8_t MPU6050_Init(void)
     }
 
     // 设置陀螺仪配置
-    if (MPU6050_Write_Reg(GYRO_CONFIG_REG, (MPU6050_GYRO_SCALE << 3)) != 0)
+    if (MPU6050_Write_Reg(GYRO_CONFIG_REG, MPU6050_GYRO_SCALE << 3) != 0)
     {
         return 6;
     }
 
     // 设置加速度计配置
-    if (MPU6050_Write_Reg(ACCEL_CONFIG_REG, (MPU6050_ACCEL_SCALE << 3)) != 0)
+    if (MPU6050_Write_Reg(ACCEL_CONFIG_REG, MPU6050_ACCEL_SCALE << 3) != 0)
     {
         return 7;
     }
@@ -141,47 +141,80 @@ uint8_t MPU6050_Test_Connection(void)
 }
 
 /**
- * @brief 校准MPU6050，计算偏移量
- * @param DataStruct 数据结构指针
+ * @brief 读取原始加速度计数据 (内部使用)
+ */
+static uint8_t MPU6050_Read_Raw_Accel(int16_t *ax, int16_t *ay, int16_t *az)
+{
+    uint8_t Rec_Data[6];
+    if (MPU6050_Read_Multi_Reg(ACCEL_XOUT_H_REG, Rec_Data, 6) == 0)
+    {
+        *ax = (int16_t)(Rec_Data[0] << 8 | Rec_Data[1]);
+        *ay = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);
+        *az = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
+        return 0;
+    }
+    *ax = *ay = *az = 0;
+    return 1;
+}
+
+/**
+ * @brief 读取原始陀螺仪数据 (内部使用)
+ */
+static uint8_t MPU6050_Read_Raw_Gyro(int16_t *gx, int16_t *gy, int16_t *gz)
+{
+    uint8_t Rec_Data[6];
+    if (MPU6050_Read_Multi_Reg(GYRO_XOUT_H_REG, Rec_Data, 6) == 0)
+    {
+        *gx = (int16_t)(Rec_Data[0] << 8 | Rec_Data[1]);
+        *gy = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);
+        *gz = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
+        return 0;
+    }
+    *gx = *gy = *gz = 0;
+    return 1;
+}
+
+/**
+ * @brief 对MPU6050进行校准
+ * @param DataStruct - MPU6050数据结构指针
+ * @note 校准时请将模块水平静置
  */
 void MPU6050_Calibrate(MPU6050_t *DataStruct)
 {
-    int32_t gx_sum = 0, gy_sum = 0, gz_sum = 0;
-    int32_t ax_sum = 0, ay_sum = 0, az_sum = 0;
-    const int samples = 100;
+    int16_t ax, ay, az, gx, gy, gz;
+    // 使用32位整型防止累加时溢出
+    int32_t Accel_Sum[3] = {0, 0, 0};
+    int32_t Gyro_Sum[3] = {0, 0, 0};
+    const int num_samples = 500;
 
-    // 初始化偏移量为0
-    DataStruct->Gyro_X_Offset = 0;
-    DataStruct->Gyro_Y_Offset = 0;
-    DataStruct->Gyro_Z_Offset = 0;
-    DataStruct->Accel_X_Offset = 0;
-    DataStruct->Accel_Y_Offset = 0;
-    DataStruct->Accel_Z_Offset = 0;
-
-    // 采集样本来计算平均值
-    for (int i = 0; i < samples; i++)
+    // 读取多次数据进行平均
+    for (int i = 0; i < num_samples; i++)
     {
-        MPU6050_Read_All(DataStruct);
+        MPU6050_Read_Raw_Accel(&ax, &ay, &az);
+        MPU6050_Read_Raw_Gyro(&gx, &gy, &gz);
 
-        gx_sum += DataStruct->Gyro_X_RAW;
-        gy_sum += DataStruct->Gyro_Y_RAW;
-        gz_sum += DataStruct->Gyro_Z_RAW;
+        Accel_Sum[0] += ax;
+        Accel_Sum[1] += ay;
+        Accel_Sum[2] += az;
 
-        ax_sum += DataStruct->Accel_X_RAW;
-        ay_sum += DataStruct->Accel_Y_RAW;
-        az_sum += DataStruct->Accel_Z_RAW;
-
-        HAL_Delay(10);
+        Gyro_Sum[0] += gx;
+        Gyro_Sum[1] += gy;
+        Gyro_Sum[2] += gz;
+        HAL_Delay(2);
     }
 
-    // 计算平均偏移量
-    DataStruct->Gyro_X_Offset = gx_sum / samples;
-    DataStruct->Gyro_Y_Offset = gy_sum / samples;
-    DataStruct->Gyro_Z_Offset = gz_sum / samples;
+    // 计算平均值作为偏移
+    DataStruct->Accel_X_Offset = Accel_Sum[0] / num_samples;
+    DataStruct->Accel_Y_Offset = Accel_Sum[1] / num_samples;
+    // Z轴的偏移计算需要减去重力加速度的影响 (1g)
+    // 理想静止状态下，Z轴读数应为 1g 对应的 LSB 值。
+    // 偏移 = 原始读数平均值 - 理想值
+    // 理想值 = 1g / (1g / 灵敏度) = 灵敏度值
+    DataStruct->Accel_Z_Offset = (Accel_Sum[2] / num_samples) - MPU6050_ACCEL_SENSITIVITY;
 
-    DataStruct->Accel_X_Offset = ax_sum / samples;
-    DataStruct->Accel_Y_Offset = ay_sum / samples;
-    DataStruct->Accel_Z_Offset = (az_sum / samples) - (int16_t)MPU6050_ACCEL_SENSITIVITY; // Z轴应该是1g
+    DataStruct->Gyro_X_Offset = Gyro_Sum[0] / num_samples;
+    DataStruct->Gyro_Y_Offset = Gyro_Sum[1] / num_samples;
+    DataStruct->Gyro_Z_Offset = Gyro_Sum[2] / num_samples;
 }
 
 /**
@@ -286,7 +319,7 @@ void MPU6050_Read_All(MPU6050_t *DataStruct)
         DataStruct->Accel_X_RAW = (int16_t)(Rec_Data[0] << 8 | Rec_Data[1]);
         DataStruct->Accel_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data[3]);
         DataStruct->Accel_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data[5]);
-        
+
         // 解析温度数据
         int16_t temp = (int16_t)(Rec_Data[6] << 8 | Rec_Data[7]);
         // MPU6050温度计算公式: Temperature = (TEMP_OUT/340.0) + 36.53

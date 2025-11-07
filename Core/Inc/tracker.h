@@ -15,13 +15,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "uart_vofa.h"
+#include "stm32f1xx_it.h"
 
 void Tracker_Init(void);
 void Tracker_Compute(void);
-
-// 可以当调试用 成功了
-void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed);
-void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position);
-
 
 #endif /* INC_TRACKER_H_ */

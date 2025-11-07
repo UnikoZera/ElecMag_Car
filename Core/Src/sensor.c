@@ -6,13 +6,14 @@
  */
 
 #include "sensor.h"
-#define LOWPASS_FILTER_ALPHA 0.35f // 低通滤波系数
+#define LOWPASS_FILTER_ALPHA 0.3f // 低通滤波系数
 
 MPU6050_t gyro_data_raw;
-uint16_t raw_adc_data[5]; // 通道1~4
+uint16_t raw_adc_data[5]; // 通道1~5
 
 uint16_t adc_data[5]; //直接就是,左边到右边
 float gyro_data[3]; // 陀螺仪数据，顺序为Gx, Gy, Gz
+float total_angle_z = 0.0f; // Z轴总角度变化
 
 typedef struct
 {
@@ -31,12 +32,12 @@ DPS_KalmanFilter gyro_x_filter, gyro_y_filter, gyro_z_filter;
 // 低通滤波函数for ADC数据
 void Lowpass_Filter(uint16_t *dst, uint16_t *input, float alpha)
 {
-    static uint16_t prev_data[5] = {0, 0, 0, 0, 0}; // 上一次的输入数据
+    static uint16_t prev_data[5] = {0}; // 上一次的输出数据
 
     for (int i = 0; i < 5; i++)
     {
         dst[i] = alpha * input[i] + (1 - alpha) * prev_data[i];
-        prev_data[i] = input[i];
+        prev_data[i] = dst[i];
     }
 }
 
@@ -75,7 +76,6 @@ float Kalman_Update(DPS_KalmanFilter *filter, float measurement)
     return filter->x;
 }
 
-// 重置滤波器
 void Kalman_Reset(DPS_KalmanFilter *filter)
 {
     filter->x = 0.0f;
@@ -88,29 +88,32 @@ void Kalman_Reset(DPS_KalmanFilter *filter)
 
 void Sensor_Init(void)
 {
+    // 初始化ADC
+    HAL_ADCEx_Calibration_Start(&hadc1); // 校准ADC, 但是貌似没啥卵用233.
+    HAL_Delay(10); // 等待校准完成
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)raw_adc_data, sizeof(raw_adc_data)/sizeof(uint16_t));
     // 初始化陀螺仪
     MPU6050_Init();
     MPU6050_Calibrate(&gyro_data_raw);
-    Kalman_Init(&gyro_x_filter, 0.001f, 0.01f); // 初始化X轴卡尔曼滤波器
-    Kalman_Init(&gyro_y_filter, 0.001f, 0.01f); // 初始化Y轴卡尔曼滤波器
-    Kalman_Init(&gyro_z_filter, 0.001f, 0.01f); // 初始化Z轴卡尔曼滤波器
-
-    //初始化ADC
-    HAL_ADCEx_Calibration_Start(&hadc1); // 校准ADC, 但是貌似没啥卵用233.
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)raw_adc_data, sizeof(raw_adc_data)/sizeof(uint16_t));
-
-    Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
-
+    HAL_Delay(50); // 等待校准完成
+    Kalman_Init(&gyro_x_filter, 0.01f, 0.01f); // 初始化X轴卡尔曼滤波器
+    Kalman_Init(&gyro_y_filter, 0.01f, 0.01f); // 初始化Y轴卡尔曼滤波器
+    Kalman_Init(&gyro_z_filter, 0.01f, 0.01f); // 初始化Z轴卡尔曼滤波器
+    // 初始化超声波传感器
     Ultrasonic_Init();
 }
 
-
 void Sensor_Updater(void)
 {
-    MPU6050_Read_All(&gyro_data_raw);
-    gyro_data[0] = Kalman_Update(&gyro_x_filter, gyro_data_raw.Gx);
-    gyro_data[1] = Kalman_Update(&gyro_y_filter, gyro_data_raw.Gy);
-    gyro_data[2] = Kalman_Update(&gyro_z_filter, gyro_data_raw.Gz);
+    if (HAL_GetTick() % 2 == 0) // 500Hz更新陀螺仪数据
+    {
+        MPU6050_Read_All(&gyro_data_raw);
+        gyro_data[0] = Kalman_Update(&gyro_x_filter, gyro_data_raw.Gx);
+        gyro_data[1] = Kalman_Update(&gyro_y_filter, gyro_data_raw.Gy);
+        gyro_data[2] = Kalman_Update(&gyro_z_filter, gyro_data_raw.Gz);
+
+        total_angle_z += gyro_data[2] * 0.002f * 1; // 可能需要魔法数调整
+    }
 
     Lowpass_Filter(adc_data, raw_adc_data, LOWPASS_FILTER_ALPHA);
 

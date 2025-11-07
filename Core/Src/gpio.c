@@ -67,7 +67,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = HC_Trigger_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(HC_Trigger_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : HC_Input_Pin */
@@ -80,7 +80,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = BIN1_Pin|BIN2_Pin|AIN1_Pin|AIN2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/

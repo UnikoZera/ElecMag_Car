@@ -1,6 +1,6 @@
 ../Core/Src/pid.c:18:6:PID_Init	1
-../Core/Src/pid.c:39:6:PID_SetTarget	1
-../Core/Src/pid.c:44:6:PID_SetOutputLimits	1
-../Core/Src/pid.c:50:6:PID_SetIntegralLimits	1
-../Core/Src/pid.c:56:7:PID_Compute	5
-../Core/Src/pid.c:98:6:PID_Reset	1
+../Core/Src/pid.c:42:6:PID_SetTarget	1
+../Core/Src/pid.c:47:6:PID_SetOutputLimits	1
+../Core/Src/pid.c:53:6:PID_SetIntegralLimits	1
+../Core/Src/pid.c:59:7:PID_Compute	6
+../Core/Src/pid.c:114:6:PID_Reset	1

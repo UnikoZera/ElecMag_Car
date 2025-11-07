@@ -3,8 +3,10 @@
 ../Core/Src/gyro.c:41:9:MPU6050_Read_Multi_Reg	1
 ../Core/Src/gyro.c:51:9:MPU6050_Init	9
 ../Core/Src/gyro.c:111:9:MPU6050_Test_Connection	5
-../Core/Src/gyro.c:147:6:MPU6050_Calibrate	2
-../Core/Src/gyro.c:191:6:MPU6050_Read_Accel	2
-../Core/Src/gyro.c:223:6:MPU6050_Read_Gyro	2
-../Core/Src/gyro.c:255:6:MPU6050_Read_Temp	2
-../Core/Src/gyro.c:278:6:MPU6050_Read_All	2
+../Core/Src/gyro.c:146:16:MPU6050_Read_Raw_Accel	2
+../Core/Src/gyro.c:163:16:MPU6050_Read_Raw_Gyro	2
+../Core/Src/gyro.c:182:6:MPU6050_Calibrate	2
+../Core/Src/gyro.c:224:6:MPU6050_Read_Accel	2
+../Core/Src/gyro.c:256:6:MPU6050_Read_Gyro	2
+../Core/Src/gyro.c:288:6:MPU6050_Read_Temp	2
+../Core/Src/gyro.c:311:6:MPU6050_Read_All	2

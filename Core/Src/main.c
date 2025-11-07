@@ -54,7 +54,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+float debug_data[13] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,16 +100,16 @@ int main(void)
   MX_DMA_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_I2C2_Init();
   MX_TIM4_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   #pragma region Initialization
   Sensor_Init();
   Motor_Init();
-  Tracker_Init();
+  // Tracker_Init();
 
   #pragma endregion
 
@@ -132,12 +132,14 @@ int main(void)
 
     #pragma endregion
     
-    #pragma region Debug
-    // debug_data[0] = motor_left_data.fliltered_speed;
-    // VOFA_SendFloat(debug_data, 4);
+    #pragma region Debug // ?如果你想在这里用的话
 
+    debug_data[0] = gyro_data[0];
+    debug_data[1] = gyro_data[1];
+    debug_data[2] = gyro_data[2];
+    debug_data[3] = total_angle_z;
+    VOFA_SendFloat(debug_data, 4);
     #pragma endregion
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

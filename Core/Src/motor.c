@@ -26,9 +26,26 @@
 Motor_DataTypeDef motor_left_data;  // 电机数据结构体
 Motor_DataTypeDef motor_right_data; // 电机数据结构体
 
+
+#pragma region PID 控制器
+#define MOTOR_MAX_OUTPUT 1000.0f   // 电机最大输出
+#define MOTOR_MIN_OUTPUT -1000.0f  // 电机最小输出
+#define MOTOR_MAX_INTEGRAL 100.0f  // TODO: 电机积分最大值
+#define MOTOR_MIN_INTEGRAL -60.0f // TODO: 电机积分最小值
+
+#define MOTOR_KP 1.0f   // 左右电机速度PID比例系数 // TODO: 电机调参部分
+#define MOTOR_KI 21.3f  // 左右电机速度PID积分系数
+#define MOTOR_KD 0.023f // 左右电机速度PID微分系数
+#define MOTOR_DT 0.01f  // PID采样周期，单位为秒
+
+PID_TypeDef motor_left_speed_pid, motor_right_speed_pid;  // 电机速度PID
+PID_TypeDef motor_left_position_pid, motor_right_position_pid; // 电机位置PID
+#pragma endregion
+
+
 typedef struct 
 {
-    float prevNum;
+    float prevNum; // i can't believe it's the only way to do it.
 } LPF1State;
 
 LPF1State lpf1_left_speed, lpf1_left_acceleration, lpf1_right_speed, lpf1_right_acceleration = {0.0f};
@@ -39,7 +56,6 @@ static float LPF1_Update(float *dst, float *input, float alpha, LPF1State *state
     state->prevNum = *dst;
     return *dst;
 }
-
 
 void Motor_Init(void)
 {
@@ -61,6 +77,26 @@ void Motor_Init(void)
     motor_right_data.angle = 0.0f;
     motor_right_data.acceleration = 0.0f;
     Motor_SetSpeed(0, 0);
+
+    /* 初始化左电机PID - 速度控制 */
+    PID_Init(&motor_left_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
+    PID_SetOutputLimits(&motor_left_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
+    PID_SetIntegralLimits(&motor_left_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
+
+    /* 初始化右电机PID - 速度控制 */
+    PID_Init(&motor_right_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
+    PID_SetOutputLimits(&motor_right_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
+    PID_SetIntegralLimits(&motor_right_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
+
+    /* 初始化左电机PID - 位置控制 */ //? 停车可能有用 2333
+    PID_Init(&motor_left_position_pid, .9f, 0.0f, 0.005f, 0.01f);
+    PID_SetOutputLimits(&motor_left_position_pid, -500.0f, 500.0f);
+    PID_SetIntegralLimits(&motor_left_position_pid, -100.0f, 100.0f);
+
+    /* 初始化右电机PID - 位置控制 */ //? 停车可能有用 2333
+    PID_Init(&motor_right_position_pid, .9f, 0.0f, 0.005f, 0.01f);
+    PID_SetOutputLimits(&motor_right_position_pid, -500.0f, 500.0f);
+    PID_SetIntegralLimits(&motor_right_position_pid, -100.0f, 100.0f);
 }
 
 /*
@@ -70,7 +106,7 @@ void Motor_Init(void)
  * -1000~1000表示速度范围
  * 该函数会先对速度进行限制，然后设置PWM占空比以控制电机速度。
  */
-void Motor_SetSpeed(int left_pwm, int right_pwm)
+void Motor_SetSpeed(int left_pwm, int right_pwm) // TODO: 检查引脚定义是否正确
 {
     // 先进行速度限制
     if (left_pwm > MOTOR_MAX_PWM)
@@ -202,4 +238,39 @@ void Get_Motor_Info(void)
 void Motor_Stop(void)
 {
     Motor_SetSpeed(0, 0);
+}
+
+
+void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed)
+{
+    // 更新左电机速度PID
+    PID_SetTarget(&motor_left_speed_pid, target_left_speed);
+    float left_output = PID_Compute(&motor_left_speed_pid, motor_left_data.filtered_speed);
+
+    // 更新右电机速度PID
+    PID_SetTarget(&motor_right_speed_pid, target_right_speed);
+    float right_output = PID_Compute(&motor_right_speed_pid, motor_right_data.filtered_speed);
+
+    // 设置电机速度
+    float debug_data1[3];
+    debug_data1[0] = left_output;
+    debug_data1[1] = motor_left_data.filtered_speed;
+    debug_data1[2] = motor_left_data.filtered_acceleration; // 角度数据
+    VOFA_SendFloat(debug_data1, 3);         // 发送调试数据
+
+    Motor_SetSpeed((int)left_output, (int)right_output);
+}
+
+void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position)
+{
+    // 更新左电机位置PID
+    PID_SetTarget(&motor_left_position_pid, target_left_position);
+    float left_output = PID_Compute(&motor_left_position_pid, motor_left_data.angle);
+
+    // 更新右电机位置PID
+    PID_SetTarget(&motor_right_position_pid, target_right_position);
+    float right_output = PID_Compute(&motor_right_position_pid, motor_right_data.angle);
+
+    // 设置电机速度
+    PID_Motor_Controllers_Speed_Updater(left_output, right_output);
 }

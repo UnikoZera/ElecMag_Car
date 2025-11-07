@@ -5,171 +5,103 @@
  *      Author: UnikoZera
  */
 
+
 #include "tracker.h"
-#include "uart_vofa.h"
-#include "stm32f1xx_it.h"
 
-#define MOTOR_MAX_OUTPUT 1000.0f   // 电机最大输出
-#define MOTOR_MIN_OUTPUT -1000.0f  // 电机最小输出
-#define MOTOR_MAX_INTEGRAL 100.0f  // 电机积分最大值
-#define MOTOR_MIN_INTEGRAL -60.0f // 电机积分最小值
+#define MOTOR_LOST_THRESHOLD 1000.0f    // 电机丢线阈值，单位为ADC值
+#define ULTRASONIC_THRESHOLD 30.0f      // 超声波避障阈值，单位为厘米
+#define STRAIGHT_TRACK_THRESHOLD 100.0f // 直线跟踪阈值，单位为ADC值(在这个阈值范围内给大油门!)
 
-#define MOTOR_KP 1.0f   // 左右电机速度PID比例系数
-#define MOTOR_KI 21.3f  // 左右电机速度PID积分系数
-#define MOTOR_KD 0.023f // 左右电机速度PID微分系数
-#define MOTOR_DT 0.01f  // PID采样周期，单位为秒
+const float adc_weight[5] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f }; // 五个传感器的权重
 
-#define MOTOR_LOST_THRESHOLD 1000.0f // 电机丢线阈值，单位为ADC值
-#define ULTRASONIC_THRESHOLD 30.0f // 超声波避障阈值，单位为厘米
-
-// adc权重比
-#define ADC_RATIO_INSIDE 1.0f
-#define ADC_RATIO_OUTSIDE 4.0f
-
-PID_TypeDef motor_left_speed_pid, motor_right_speed_pid;  // 电机速度PID
-PID_TypeDef motor_left_position_pid, motor_right_position_pid; // 电机位置PID
 PID_TypeDef direction_pid; // 方向控制PID
 
-int tender = 1; //-1为向左,1为向右
-unsigned char counter_crossroads = 0;
-float motor_basic_speed = 300.0f; // 基础速度
-bool enable_state_machine = true; // 是否启用状态机
+int tender = 1;                     //-1为向左,1为向右
+uint16_t counter_crossroads = 0;    // 停车需要用到的变量
+float motor_basic_speed = 300.0f;   // 基础速度 其实可以动态调整的，但是先这样吧 // TODO: 基础速度调整机制
+bool enable_state_machine = true;   // 是否启用状态机
+float weighted_sum = 0;             // 加权和，用于计算偏差
+float total_sum = 0;                // 传感器总和
+float deviation = 0;                // 偏差值
 
 typedef enum
 {
     TRACK_NORMAL,         // 正常跟踪(包括直线跟踪和曲线跟踪)
     TRACK_AROUND,         // 环岛情况
     TRACK_AVOID_OBSTACLE, // 避障跟踪
-    TRACK_IDLE,           // 空闲状态(不跟踪)
+    TRACK_IDLE,           // 空闲状态(停车)
     TRACK_LOST,           // 丢失导线
+    TRACK_STRAIGHT        // 直线跟踪
 } TrackState_t;
 
-TrackState_t current_track_state = TRACK_IDLE;
-TrackState_t previous_track_state = TRACK_IDLE;
+TrackState_t current_track_state = TRACK_IDLE;   // 当前跟踪状态
+TrackState_t previous_track_state = TRACK_IDLE;  // 上一个跟踪状态
 
 void Tracker_Init(void)
 {
-    /* 初始化左电机PID - 速度控制 */
-    PID_Init(&motor_left_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
-    PID_SetOutputLimits(&motor_left_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
-    PID_SetIntegralLimits(&motor_left_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
-
-    /* 初始化右电机PID - 速度控制 */
-    PID_Init(&motor_right_speed_pid, MOTOR_KP, MOTOR_KI, MOTOR_KD, MOTOR_DT);
-    PID_SetOutputLimits(&motor_right_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
-    PID_SetIntegralLimits(&motor_right_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
-
-    /* 初始化左电机PID - 位置控制 */ //? 停车可能有用 2333
-    PID_Init(&motor_left_position_pid, .9f, 0.0f, 0.005f, 0.01f);
-    PID_SetOutputLimits(&motor_left_position_pid, -500.0f, 500.0f);
-    PID_SetIntegralLimits(&motor_left_position_pid, -100.0f, 100.0f);
-
-    /* 初始化右电机PID - 位置控制 */ //? 停车可能有用 2333
-    PID_Init(&motor_right_position_pid, .9f, 0.0f, 0.005f, 0.01f);
-    PID_SetOutputLimits(&motor_right_position_pid, -500.0f, 500.0f);
-    PID_SetIntegralLimits(&motor_right_position_pid, -100.0f, 100.0f);
-
     /* 初始化方向控制PID */ // 我能不能活就看你了
     PID_Init(&direction_pid, 2.0f, 0.05f, 0.1f, 0.01f);
-    PID_SetOutputLimits(&direction_pid, 3000.0f, 3000.0f);
-    PID_SetIntegralLimits(&direction_pid, -100.0f, 100.0f);
+    PID_SetOutputLimits(&direction_pid, 3000.0f, 3000.0f);  // TODO: 方向PID输出限制
+    PID_SetIntegralLimits(&direction_pid, -100.0f, 100.0f); // TODO: 积分限制
+
+    /* 看看还有什么pid要用的 */
+
 }
 
-void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed)
-{
-    // 更新左电机速度PID
-    PID_SetTarget(&motor_left_speed_pid, target_left_speed);
-    float left_output = PID_Compute(&motor_left_speed_pid, motor_left_data.filtered_speed);
-
-    // 更新右电机速度PID
-    PID_SetTarget(&motor_right_speed_pid, target_right_speed);
-    float right_output = PID_Compute(&motor_right_speed_pid, motor_right_data.filtered_speed);
-
-    // 设置电机速度
-    float debug_data1[3];
-    debug_data1[0] = left_output;
-    debug_data1[1] = motor_left_data.filtered_speed;
-    debug_data1[2] = motor_left_data.filtered_acceleration; // 角度数据
-    VOFA_SendFloat(debug_data1, 3);         // 发送调试数据
-
-    Motor_SetSpeed((int)left_output, (int)right_output);
-}
-
-void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position)
-{
-    // 更新左电机位置PID
-    PID_SetTarget(&motor_left_position_pid, target_left_position);
-    float left_output = PID_Compute(&motor_left_position_pid, motor_left_data.angle);
-
-    // 更新右电机位置PID
-    PID_SetTarget(&motor_right_position_pid, target_right_position);
-    float right_output = PID_Compute(&motor_right_position_pid, motor_right_data.angle);
-
-    // 设置电机速度
-    PID_Motor_Controllers_Speed_Updater(left_output, right_output);
-}
-
-
-
-
-
-
-#pragma region 状态机函数
+#pragma region State Machine and Track Methods
 void State_Machine(void)
 {
-    // 这里选择是否丢线
-    if (adc_data[0] < MOTOR_LOST_THRESHOLD && adc_data[1] < MOTOR_LOST_THRESHOLD && adc_data[2] < MOTOR_LOST_THRESHOLD && adc_data[3] < MOTOR_LOST_THRESHOLD)
+    previous_track_state = current_track_state; // 更新上一个状态
+
+    if (distance < ULTRASONIC_THRESHOLD) // 避障优先级最高,因为这会导致丢线
     {
-        current_track_state = TRACK_LOST;
-        return; // 丢线状态不需要更新adc
+        current_track_state = TRACK_AVOID_OBSTACLE;
+        return;
+    }
+
+    if (adc_data[0] < MOTOR_LOST_THRESHOLD && adc_data[1] < MOTOR_LOST_THRESHOLD && adc_data[2] < MOTOR_LOST_THRESHOLD && adc_data[3] < MOTOR_LOST_THRESHOLD && adc_data[4] < MOTOR_LOST_THRESHOLD)
+    {
+        current_track_state = TRACK_LOST; // i hate this state.
+        return;
     }
     
-    // 这里放置是否进入环岛的判断
+    // 这里放置是否进入环岛的判断 // TODO: 环岛判断条件
     // if (condition)
     // {
     //     current_track_state = TRACK_AROUND;
     //     return;
     // }
 
-    // 这里是超声波判断是否躲避障碍物(优先级大于adc)
-    // if (Ultrasonic_GetDistance() < ULTRASONIC_THRESHOLD)
+    // 判断是否需要停车 // TODO: 停车判断条件
+    // if (condition)
     // {
-    //     current_track_state = TRACK_AVOID_OBSTACLE;
-    //     return; // 避障状态不需要更新adc
+    //     current_track_state = TRACK_IDLE;
+    //     return;
     // }
 
-    // 判断是否需要停车
-    //  
-    //
-
-    // 这里是adc的数据来分配具体状态
-    if ((ADC_RATIO_OUTSIDE * (adc_data[3] - adc_data[0]) + (ADC_RATIO_INSIDE * (adc_data[2] - adc_data[1]))) > 0)
+    if (fabsf(deviation) < STRAIGHT_TRACK_THRESHOLD)
+    {
+        current_track_state = TRACK_STRAIGHT; // 直线跟踪
+        return;
+    }
+    else if (weighted_sum > 0)
     {
         tender = 1; // 向右
         current_track_state = TRACK_NORMAL;
+        return;
     }
-    else if ((-ADC_RATIO_OUTSIDE * adc_data[0] - ADC_RATIO_INSIDE * adc_data[1] + ADC_RATIO_INSIDE * adc_data[2] + ADC_RATIO_OUTSIDE * adc_data[3]) < 0)
+    else if (weighted_sum < 0)
     {
         tender = -1; // 向左
         current_track_state = TRACK_NORMAL;
+        return;
     }
-    else
-    {
-        //可以考虑加快速度
-        current_track_state = TRACK_NORMAL;
-    }
-
 }
 
-void Normal_Track(void) // 标准的巡线
+void Normal_Track(void) // 巡线跟踪
 {
-    float weighted_diff = ADC_RATIO_OUTSIDE * adc_data[0] - ADC_RATIO_INSIDE * adc_data[1] +
-                          ADC_RATIO_INSIDE * adc_data[2] + ADC_RATIO_OUTSIDE * adc_data[3];
-
-    float deviation = weighted_diff / 4; // 计算平均偏差值
-
     PID_SetTarget(&direction_pid, 0.0f); // 目标是零偏差大师！
-    float direction_correction = PID_Compute(&direction_pid, deviation) * 1.0f; // 计算方向修正值
+    float direction_correction = PID_Compute(&direction_pid, deviation);
 
     float target_left_speed = motor_basic_speed - direction_correction;
     float target_right_speed = motor_basic_speed + direction_correction;
@@ -177,50 +109,46 @@ void Normal_Track(void) // 标准的巡线
     PID_Motor_Controllers_Speed_Updater(target_left_speed, target_right_speed);
 }
 
-void Sharp_Turn_Track(int dir) //后退着 //? 因为我认为normalTrack应该可以对付直角转弯
-{
-    float turn_speed = 200.0f;
-    float target_speed = turn_speed * 0.5f;
+ //! 因为我认为normalTrack应该可以对付直角转弯(所以sharp_turn被cancelled了)
+//// void Sharp_Turn_Track(int dir)
+//// {
+////     float turn_speed = 200.0f;
+////     float target_speed = turn_speed * 0.5f;
+////     switch (dir)
+////     {
+////     case 1:
+////         PID_Motor_Controllers_Speed_Updater(turn_speed, target_speed);
+////         break;
+////     case -1:
+////         PID_Motor_Controllers_Speed_Updater(target_speed, turn_speed);
+////         break;
+////     default:
+////         Motor_Stop();
+////         break;
+////     }
+//// }
 
+void Avoid_Obstacle_Track(int dir) // 避障跟踪
+{
     switch (dir)
     {
-    case 1:
-        PID_Motor_Controllers_Speed_Updater(turn_speed, target_speed);
-        break;
-    case -1:
-        PID_Motor_Controllers_Speed_Updater(target_speed, turn_speed);
-        break;
-    default:
-        Motor_Stop();
-        break;
-    }
-}
+        case -1:
+        {
 
-void Avoid_Obstacle_Track(int dir)
-{
-    switch (dir)
-    {
-    case -1:
-    {
-        //可以用个漂亮的sin函数和delay来一口气完成转弯
-        enable_state_machine = true; // 启用状态机
-    }
-        break;
-    case 1:
-    {
-        enable_state_machine = true; // 启用状态机
-        break;
-    }
-    default:
-        Motor_Stop(); // 停止电机
-        break;
+            break;
+        }
+        case 1:
+        {
+
+            break;
+        }
     }
 
     // if (condition)
     // enable_state_machine = true; // 启用状态机
 }
 
-void Around_Track(int dir)
+void Around_Track(int dir) // 环岛跟踪
 {
     switch (dir)
     {
@@ -236,66 +164,119 @@ void Around_Track(int dir)
         Normal_Track(); // 继续正常跟踪
         break;
     }
-    default:
-        Motor_Stop();
-        break;
     }
 }
 
-void Lost_Track(void)
+void Lost_Track(void) // 丢线跟踪
 {
     switch (previous_track_state)
     {
     case TRACK_NORMAL:
-        Sharp_Turn_Track(tender);
+    {
+        if (tender == 1)
+        {
+            PID_Motor_Controllers_Speed_Updater(0.0f, 500.0f); // 向右转找线 // TODO: 调参
+        }
+        else
+        {
+            PID_Motor_Controllers_Speed_Updater(500.0f, 0.0f); // 向左转找线
+        }
         break;
+    }
     case TRACK_AROUND:
+    {
         Motor_Stop();
         break;
+    }
     // case TRACK_AVOID_OBSTACLE:
     //     break; //! 这里直接采用固定模块好了
     case TRACK_IDLE:
+    {
         Motor_Stop();
         break;
+    }
     default:
         break;
     }
+}
+
+void Straight_Track(void) // 直线跟踪
+{
+    PID_Motor_Controllers_Speed_Updater(motor_basic_speed + 100.0f, motor_basic_speed + 100.0f); // TODO: 速度参数
+}
+
+void Stop_Track(void) // 停车跟踪
+{
+    // Motor_Stop();
+    float target_left_position = motor_left_data.angle;
+    float target_right_position = motor_right_data.angle;
+    PID_Motor_Controllers_Position_Updater(target_left_position, target_right_position); // 有闭环你用不用? looking my eyes!!
 }
 
 #pragma endregion
 
 void Tracker_Compute(void)
 {
+    weighted_sum = (float)adc_data[0] * adc_weight[0] +
+                   (float)adc_data[1] * adc_weight[1] +
+                   (float)adc_data[2] * adc_weight[2] +
+                   (float)adc_data[3] * adc_weight[3] +
+                   (float)adc_data[4] * adc_weight[4];
+
+    total_sum = (float)adc_data[0] +
+                (float)adc_data[1] +
+                (float)adc_data[2] +
+                (float)adc_data[3] +
+                (float)adc_data[4];
+
+    deviation = weighted_sum / total_sum;
+
     if (enable_state_machine)
         State_Machine(); // 更新跟踪状态
 
     switch (current_track_state)
     {
-    case TRACK_IDLE:
-        enable_state_machine = true;
-        Motor_Stop();
-        break;
-    case TRACK_NORMAL:
-        enable_state_machine = true;
-        Normal_Track();
-        break;
-    case TRACK_LOST:
-        enable_state_machine = true;
-        Lost_Track();
-        break;
-    case TRACK_AROUND:
-        enable_state_machine = false;
-        Around_Track(tender); 
-        break;
-    case TRACK_AVOID_OBSTACLE:
-        enable_state_machine = false; // 禁用状态机
-        Avoid_Obstacle_Track(tender); // 传入方向
-        break;
-    default:
-        Motor_Stop();
-        break;
+        case TRACK_STRAIGHT:
+        {
+            enable_state_machine = true;
+            Straight_Track();
+            break;
+        }
+        case TRACK_IDLE:
+        {
+            enable_state_machine = true;
+            Stop_Track();
+            break;
+        }
+        case TRACK_NORMAL:
+        {
+            enable_state_machine = true;
+            Normal_Track();
+            break;
+        }
+        case TRACK_LOST:
+        {
+            enable_state_machine = true;
+            Lost_Track();
+            break;
+        }
+        case TRACK_AROUND:
+        {
+            enable_state_machine = false;
+            Around_Track(tender); 
+            break;
+        }
+        case TRACK_AVOID_OBSTACLE:
+        {
+            enable_state_machine = false;
+            Avoid_Obstacle_Track(tender);
+            break;
+        }
+        default:
+        {
+            enable_state_machine = true;
+            Motor_Stop();
+            break;
+        }
     }
-
-    // 更新上一个状态
-    previous_track_state = current_track_state;
 }
