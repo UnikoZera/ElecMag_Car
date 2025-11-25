@@ -27,7 +27,7 @@
 #define WHO_AM_I_REG 0x75
 
 // 配置宏定义
-#define MPU6050_SAMPLE_RATE_HZ 500   // 采样率 (Hz)
+#define MPU6050_SAMPLE_RATE_HZ 100   // 采样率 (Hz)
 #define MPU6050_GYRO_SCALE 0         // 陀螺仪量程: 0=±250°/s, 1=±500°/s, 2=±1000°/s, 3=±2000°/s
 #define MPU6050_ACCEL_SCALE 0        // 加速度计量程: 0=±2g, 1=±4g, 2=±8g, 3=±16g
 #define MPU6050_DLPF_CFG 6           // 数字低通滤波器: 0=260Hz, 1=184Hz, 2=94Hz, 3=44Hz, 4=21Hz, 5=10Hz, 6=5Hz

@@ -22,6 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f103xb.h"
 #include "stdbool.h"
 #include "uart_vofa.h"
 /* USER CODE END Includes */
@@ -43,7 +44,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-bool echo_received = false;
+bool echo_received = false; // this is serve for echo signal receive state
+uint32_t rising_time, falling_time = 0;
+float distance = 0; // cm
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -53,8 +56,6 @@ bool echo_received = false;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint32_t rising_time, falling_time = 0;
-float distance = 0; // cm
 
 /* USER CODE END 0 */
 

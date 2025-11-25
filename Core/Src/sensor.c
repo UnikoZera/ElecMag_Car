@@ -105,7 +105,7 @@ void Sensor_Init(void)
 
 void Sensor_Updater(void)
 {
-    if (HAL_GetTick() % 2 == 0) // 500Hz更新陀螺仪数据
+    if (HAL_GetTick() % 10 == 0) // 100Hz更新陀螺仪数据
     {
         MPU6050_Read_All(&gyro_data_raw);
         gyro_data[0] = Kalman_Update(&gyro_x_filter, gyro_data_raw.Gx);

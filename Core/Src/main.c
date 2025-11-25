@@ -127,17 +127,17 @@ int main(void)
     
     #pragma region Track
     // Tracker_Compute();
-    // PID_Motor_Controllers_Position_Updater(305.0f, 0);
-    // PID_Motor_Controllers_Speed_Updater(000.0f, 0.0f);
-
+    PID_Motor_Controllers_Position_Updater(305.0f, 0);
+    // PID_Motor_Controllers_Speed_Updater(500.0f, 500.0f);
+    // Motor_SetSpeed(60.0f, 60.0f);
     #pragma endregion
     
     #pragma region Debug // ?如果你想在这里用的话
 
-    debug_data[0] = gyro_data[0];
-    debug_data[1] = gyro_data[1];
-    debug_data[2] = gyro_data[2];
-    debug_data[3] = total_angle_z;
+    debug_data[0] = motor_left_data.filtered_speed;
+    debug_data[1] = motor_right_data.filtered_speed;
+    debug_data[2] = motor_left_data.angle;
+    debug_data[3] = motor_right_data.angle;
     VOFA_SendFloat(debug_data, 4);
     #pragma endregion
     /* USER CODE END WHILE */

@@ -1,7 +1,7 @@
-../Core/Src/motor.c:53:14:LPF1_Update	1
-../Core/Src/motor.c:60:6:Motor_Init	1
-../Core/Src/motor.c:109:6:Motor_SetSpeed	9
-../Core/Src/motor.c:173:6:Get_Motor_Info	3
-../Core/Src/motor.c:238:6:Motor_Stop	1
-../Core/Src/motor.c:244:6:PID_Motor_Controllers_Speed_Updater	1
-../Core/Src/motor.c:264:6:PID_Motor_Controllers_Position_Updater	1
+../Core/Src/motor.c:52:14:LPF1_Update	1
+../Core/Src/motor.c:59:6:Motor_Init	1
+../Core/Src/motor.c:107:6:Motor_SetSpeed	9
+../Core/Src/motor.c:169:6:Get_Motor_Info	3
+../Core/Src/motor.c:234:6:Motor_Stop	1
+../Core/Src/motor.c:239:6:PID_Motor_Controllers_Speed_Updater	1
+../Core/Src/motor.c:252:6:PID_Motor_Controllers_Position_Updater	1

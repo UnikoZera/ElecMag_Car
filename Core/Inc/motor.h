@@ -14,16 +14,17 @@
 #include "pid.h"
 #include "gpio.h"
 #include "tim.h"
+#include "stm32f103xb.h"
 #include "uart_vofa.h" // 用于调试数据发送
 
-#define MOTOR_MAX_PWM 1000  // 电机最大速度
-#define MOTOR_MIN_PWM -1000 // 电机最小速度
+#define MOTOR_MAX_PWM 100.0f  // 电机最大速度
+#define MOTOR_MIN_PWM -100.0f // 电机最小速度
 
-#define MOTOR_MAX_SPEED 4400.0f // 电机最大速度
+#define MOTOR_MAX_SPEED 4400.0f  // 电机最大速度
 #define MOTOR_MIN_SPEED -4400.0f // 电机最小速度
 
 void Motor_Init(void);
-void Motor_SetSpeed(int left_pwm, int right_pwm);
+void Motor_SetSpeed(float left_pwm, float right_pwm);
 void Get_Motor_Info(void);
 void Motor_Stop(void);
 
@@ -34,13 +35,13 @@ void PID_Motor_Controllers_Position_Updater(float target_left_position, float ta
 typedef struct
 {
     float speed;
-    float filtered_speed; // 滤波后的速度
-    float angle;        // 角度
-    float acceleration; // 加速度
-    float filtered_acceleration; // 滤波后的加速度
+    float filtered_speed;        // 滤波后的速度
+    float angle;                 // 角度
+    // float acceleration;          // 加速度
+    // float filtered_acceleration; // 滤波后的加速度
 } Motor_DataTypeDef;
 
-extern Motor_DataTypeDef motor_left_data; // 电机数据结构体
+extern Motor_DataTypeDef motor_left_data;  // 电机数据结构体
 extern Motor_DataTypeDef motor_right_data; // 电机数据结构体
 
 #endif /* INC_MOTOR_H_ */

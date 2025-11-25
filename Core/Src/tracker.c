@@ -16,12 +16,12 @@ const float adc_weight[5] = { -2.0f, -1.0f, 0.0f, 1.0f, 2.0f }; // 五个传感�
 
 PID_TypeDef direction_pid; // 方向控制PID
 
-int tender = 1;                     //-1为向左,1为向右
+int tender = 1;                     // -1为向左,1为向右
 uint16_t counter_crossroads = 0;    // 停车需要用到的变量
 float motor_basic_speed = 300.0f;   // 基础速度 其实可以动态调整的，但是先这样吧 // TODO: 基础速度调整机制
 bool enable_state_machine = true;   // 是否启用状态机
-float weighted_sum = 0;             // 加权和，用于计算偏差
-float total_sum = 0;                // 传感器总和
+float weighted_sum = 0;             // 加权和
+float total_sum = 0;                // 电感总和
 float deviation = 0;                // 偏差值
 
 typedef enum
@@ -148,22 +148,22 @@ void Avoid_Obstacle_Track(int dir) // 避障跟踪
     // enable_state_machine = true; // 启用状态机
 }
 
-void Around_Track(int dir) // 环岛跟踪
+void Around_Track(int dir) // 环岛跟踪 // TODO: 环岛跟踪调参
 {
     switch (dir)
     {
-    case 1:
-    {
-        PID_Motor_Controllers_Speed_Updater(1500.0f, 1000.0f); // 右转
-        Normal_Track(); // 继续正常跟踪
-        break;
-    }
-    case -1:
-    {
-        PID_Motor_Controllers_Speed_Updater(1000.0f, 1500.0f); // 左转
-        Normal_Track(); // 继续正常跟踪
-        break;
-    }
+        case 1:
+        {
+            PID_Motor_Controllers_Speed_Updater(1500.0f, 1000.0f); // 右转
+            Normal_Track(); // 继续正常跟踪
+            break;
+        }
+        case -1:
+        {
+            PID_Motor_Controllers_Speed_Updater(1000.0f, 1500.0f); // 左转
+            Normal_Track(); // 继续正常跟踪
+            break;
+        }
     }
 }
 
@@ -229,7 +229,7 @@ void Tracker_Compute(void)
                 (float)adc_data[3] +
                 (float)adc_data[4];
 
-    deviation = weighted_sum / total_sum;
+    deviation = weighted_sum / 5.0f; // 计算偏差值(平均值)
 
     if (enable_state_machine)
         State_Machine(); // 更新跟踪状态
