@@ -5,5 +5,5 @@
 ../Core/Src/tracker.c:151:6:Around_Track	16	static
 ../Core/Src/tracker.c:170:6:Lost_Track	8	static
 ../Core/Src/tracker.c:203:6:Straight_Track	16	static
-../Core/Src/tracker.c:208:6:Stop_Track	16	static
+../Core/Src/tracker.c:208:6:Stop_Track	8	static
 ../Core/Src/tracker.c:218:6:Tracker_Compute	16	static

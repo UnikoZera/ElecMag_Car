@@ -185,7 +185,7 @@ void MPU6050_Calibrate(MPU6050_t *DataStruct)
     // 使用32位整型防止累加时溢出
     int32_t Accel_Sum[3] = {0, 0, 0};
     int32_t Gyro_Sum[3] = {0, 0, 0};
-    const int num_samples = 500;
+    const int num_samples = 25;
 
     // 读取多次数据进行平均
     for (int i = 0; i < num_samples; i++)
@@ -200,7 +200,7 @@ void MPU6050_Calibrate(MPU6050_t *DataStruct)
         Gyro_Sum[0] += gx;
         Gyro_Sum[1] += gy;
         Gyro_Sum[2] += gz;
-        HAL_Delay(2);
+        HAL_Delay(10);
     }
 
     // 计算平均值作为偏移

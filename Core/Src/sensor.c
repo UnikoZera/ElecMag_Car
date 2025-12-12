@@ -6,7 +6,7 @@
  */
 
 #include "sensor.h"
-#define LOWPASS_FILTER_ALPHA 0.3f // 低通滤波系数
+#define LOWPASS_FILTER_ALPHA 0.8f // 低通滤波系数
 
 MPU6050_t gyro_data_raw;
 uint16_t raw_adc_data[5]; // 通道1~5
@@ -95,7 +95,7 @@ void Sensor_Init(void)
     // 初始化陀螺仪
     MPU6050_Init();
     MPU6050_Calibrate(&gyro_data_raw);
-    HAL_Delay(50); // 等待校准完成
+    HAL_Delay(20); // 等待校准完成
     Kalman_Init(&gyro_x_filter, 0.01f, 0.01f); // 初始化X轴卡尔曼滤波器
     Kalman_Init(&gyro_y_filter, 0.01f, 0.01f); // 初始化Y轴卡尔曼滤波器
     Kalman_Init(&gyro_z_filter, 0.01f, 0.01f); // 初始化Z轴卡尔曼滤波器

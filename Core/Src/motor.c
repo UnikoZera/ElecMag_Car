@@ -7,7 +7,7 @@
 
 #include "motor.h"
 
-#define PWM_PERIOD (200.0f - 1.0f)                                          // PWM周期
+#define PWM_PERIOD (125.0f - 1.0f)                                          // PWM周期
 #define Calculate_PWM_Duty(value) ((uint32_t)(value * PWM_PERIOD / 100.0f)) // 把0~100转化为pwm的真实占空比
 
 #define MOTOR_REVOLUTION 500.0f
@@ -32,13 +32,13 @@ Motor_DataTypeDef motor_right_data; // 电机数据结构体
 #define MOTOR_MAX_INTEGRAL 60.0f
 #define MOTOR_MIN_INTEGRAL -60.0f
 
-#define MOTOR_KP 0.65f   // 左右电机速度PID比例系数
-#define MOTOR_KI 1.5f  // 左右电机速度PID积分系数
-#define MOTOR_KD 0.03f // 左右电机速度PID微分系数
+#define MOTOR_KP 0.38f   // 左右电机速度PID比例系数
+#define MOTOR_KI 11.0f  // 左右电机速度PID积分系数
+#define MOTOR_KD 0.0035f // 左右电机速度PID微分系数
 #define MOTOR_DT 0.01f  // PID采样周期，单位为秒
 
 PID_TypeDef motor_left_speed_pid, motor_right_speed_pid;       // 电机速度PID
-PID_TypeDef motor_left_position_pid, motor_right_position_pid; // 电机位置PID
+// PID_TypeDef motor_left_position_pid, motor_right_position_pid; // 电机位置PID
 #pragma endregion
 
 typedef struct
@@ -86,15 +86,15 @@ void Motor_Init(void)
     PID_SetOutputLimits(&motor_right_speed_pid, MOTOR_MIN_OUTPUT, MOTOR_MAX_OUTPUT);
     PID_SetIntegralLimits(&motor_right_speed_pid, MOTOR_MIN_INTEGRAL, MOTOR_MAX_INTEGRAL);
 
-    /* 初始化左电机PID - 位置控制 */ //? 停车可能有用 2333
-    PID_Init(&motor_left_position_pid, 1.6f, 1.0f, 0.005f, 0.03f);
-    PID_SetOutputLimits(&motor_left_position_pid, -100.0f, 100.0f);
-    PID_SetIntegralLimits(&motor_left_position_pid, -60.0f, 60.0f);
+    // /* 初始化左电机PID - 位置控制 */ //? 停车可能有用 2333
+    // PID_Init(&motor_left_position_pid, 1.6f, 1.0f, 0.005f, 0.03f);
+    // PID_SetOutputLimits(&motor_left_position_pid, -100.0f, 100.0f);
+    // PID_SetIntegralLimits(&motor_left_position_pid, -60.0f, 60.0f);
 
-    /* 初始化右电机PID - 位置控制 */ //? 停车可能有用 2333
-    PID_Init(&motor_right_position_pid, 1.6f, 1.0f, 0.005f, 0.03f);
-    PID_SetOutputLimits(&motor_right_position_pid, -100.0f, 100.0f);
-    PID_SetIntegralLimits(&motor_right_position_pid, -60.0f, 60.0f);
+    // /* 初始化右电机PID - 位置控制 */ //? 停车可能有用 2333
+    // PID_Init(&motor_right_position_pid, 1.6f, 1.0f, 0.005f, 0.03f);
+    // PID_SetOutputLimits(&motor_right_position_pid, -100.0f, 100.0f);
+    // PID_SetIntegralLimits(&motor_right_position_pid, -60.0f, 60.0f);
 }
 
 /*
@@ -191,7 +191,7 @@ void Get_Motor_Info(void)
     uint16_t right_encoder_count = __HAL_TIM_GET_COUNTER(&htim3);
 
     // 计算差值
-    int16_t left_diff = (int32_t)((left_encoder_count - preLeftCount));
+    int16_t left_diff = (int32_t)(left_encoder_count - preLeftCount);
     int16_t right_diff = (int32_t)(right_encoder_count - preRightCount);
 
     // 累加总计数，这样可以追踪多圈转动
@@ -215,9 +215,9 @@ void Get_Motor_Info(void)
         motor_right_data.speed = right_angle_diff / time_diff;                                  // 度/秒
         //// motor_right_data.acceleration = (motor_right_data.speed - pre_right_speed) / time_diff; // 度/秒²
 
-        LPF1_Update(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.01f, &lpf1_left_speed);
+        LPF1_Update(&motor_left_data.filtered_speed, &motor_left_data.speed, 0.4f, &lpf1_left_speed);
         // LPF1_Update(&motor_left_data.filtered_acceleration, &motor_left_data.acceleration, 0.01f, &lpf1_left_acceleration);
-        LPF1_Update(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.01f, &lpf1_right_speed);
+        LPF1_Update(&motor_right_data.filtered_speed, &motor_right_data.speed, 0.4f, &lpf1_right_speed);
         // LPF1_Update(&motor_right_data.filtered_acceleration, &motor_right_data.acceleration, 0.01f, &lpf1_right_acceleration);
 
         // 更新历史数据
@@ -239,7 +239,7 @@ void Motor_Stop(void)
 void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed)
 {
     // 更新左电机速度PID
-    PID_SetTarget(&motor_left_speed_pid, -target_left_speed);
+    PID_SetTarget(&motor_left_speed_pid, -target_left_speed); // FIXME: 左电机反转这里是个hotfix!是编码器装反了导致的lol
     float left_output = PID_Compute(&motor_left_speed_pid, motor_left_data.filtered_speed);
 
     // 更新右电机速度PID
@@ -249,16 +249,16 @@ void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_r
     Motor_SetSpeed(left_output, right_output);
 }
 
-void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position)
-{
-    // 更新左电机位置PID
-    PID_SetTarget(&motor_left_position_pid, target_left_position);
-    float left_output = PID_Compute(&motor_left_position_pid, motor_left_data.angle);
+// void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position)
+// {
+//     // 更新左电机位置PID
+//     PID_SetTarget(&motor_left_position_pid, target_left_position);
+//     float left_output = PID_Compute(&motor_left_position_pid, motor_left_data.angle);
 
-    // 更新右电机位置PID
-    PID_SetTarget(&motor_right_position_pid, target_right_position);
-    float right_output = PID_Compute(&motor_right_position_pid, motor_right_data.angle);
+//     // 更新右电机位置PID
+//     PID_SetTarget(&motor_right_position_pid, target_right_position);
+//     float right_output = PID_Compute(&motor_right_position_pid, motor_right_data.angle);
 
-    // 设置电机速度
-    PID_Motor_Controllers_Speed_Updater(left_output, right_output);
-}
+//     // 设置电机速度
+//     PID_Motor_Controllers_Speed_Updater(left_output, right_output);
+// }

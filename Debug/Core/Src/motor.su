@@ -4,4 +4,3 @@
 ../Core/Src/motor.c:169:6:Get_Motor_Info	32	static
 ../Core/Src/motor.c:234:6:Motor_Stop	8	static
 ../Core/Src/motor.c:239:6:PID_Motor_Controllers_Speed_Updater	24	static
-../Core/Src/motor.c:252:6:PID_Motor_Controllers_Position_Updater	24	static

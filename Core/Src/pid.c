@@ -23,7 +23,7 @@ void PID_Init(PID_TypeDef *pid, float kp, float ki, float kd, float dt)
     pid->dt = dt;
 
     // 这里还是得初始化一下时间戳，防止误差
-    pid->last_time = __HAL_TIM_GetCounter(&htim4);
+    pid->last_time = __HAL_TIM_GetCounter(&htim4); // pretty cool isn't ?
 
     pid->setpoint = 0.0f;
     pid->last_error = 0.0f;

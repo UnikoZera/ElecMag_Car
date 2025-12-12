@@ -34,6 +34,7 @@
 #include "tracker.h"
 #include "ultransonic.h" // Finally i did this. 25/10/24 -_-.
 #include "stdbool.h" // for some nil boy wanna to using bool type.
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +55,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-float debug_data[13] = {0};
+float debug_data[4] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,10 +108,11 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   #pragma region Initialization
+  __HAL_RCC_AFIO_CLK_ENABLE();
+  __HAL_AFIO_REMAP_SWJ_DISABLE();
   Sensor_Init();
   Motor_Init();
   // Tracker_Init();
-
   #pragma endregion
 
   /* USER CODE END 2 */
@@ -127,18 +129,15 @@ int main(void)
     
     #pragma region Track
     // Tracker_Compute();
-    PID_Motor_Controllers_Position_Updater(305.0f, 0);
-    // PID_Motor_Controllers_Speed_Updater(500.0f, 500.0f);
-    // Motor_SetSpeed(60.0f, 60.0f);
     #pragma endregion
     
     #pragma region Debug // ?如果你想在这里用的话
 
-    debug_data[0] = motor_left_data.filtered_speed;
-    debug_data[1] = motor_right_data.filtered_speed;
-    debug_data[2] = motor_left_data.angle;
-    debug_data[3] = motor_right_data.angle;
-    VOFA_SendFloat(debug_data, 4);
+    // debug_data[0] = motor_left_data.filtered_speed;
+    // debug_data[1] = motor_right_data.filtered_speed;
+    // debug_data[2] = motor_left_data.angle;
+    // debug_data[3] = motor_right_data.angle;
+    // VOFA_SendFloat(debug_data, 4);
     #pragma endregion
     /* USER CODE END WHILE */
 

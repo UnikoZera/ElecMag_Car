@@ -30,7 +30,7 @@ void Motor_Stop(void);
 
 // that's it!
 void PID_Motor_Controllers_Speed_Updater(float target_left_speed, float target_right_speed);
-void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position);
+// void PID_Motor_Controllers_Position_Updater(float target_left_position, float target_right_position);
 
 typedef struct
 {

@@ -207,10 +207,10 @@ void Straight_Track(void) // 直线跟踪
 
 void Stop_Track(void) // 停车跟踪
 {
-    // Motor_Stop();
-    float target_left_position = motor_left_data.angle;
-    float target_right_position = motor_right_data.angle;
-    PID_Motor_Controllers_Position_Updater(target_left_position, target_right_position); // 有闭环你用不用? looking my eyes!!
+    Motor_Stop();
+    // float target_left_position = motor_left_data.angle;
+    // float target_right_position = motor_right_data.angle;
+    // PID_Motor_Controllers_Position_Updater(target_left_position, target_right_position); // 有闭环你用不用? looking my eyes!! // *huh, i still think it's unnessary behaviour lol.
 }
 
 #pragma endregion
